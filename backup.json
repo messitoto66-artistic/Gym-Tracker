@@ -1,0 +1,715 @@
+{
+  "updatedAt": "12/11/2026 00:50:50",
+  "homeConfig": {
+    "title": "Tableau de bord",
+    "subtitle": "Objectif 80 kg · V-Taper & Calisthénie",
+    "order": [
+      "calendar",
+      "workout",
+      "nutri",
+      "water"
+    ]
+  },
+  "nutriTargets": {
+    "weight": 70,
+    "height": 178,
+    "age": 22,
+    "activity": 1.55,
+    "goalDelta": 300,
+    "kcal": 2700,
+    "prot": 150,
+    "carbs": 330,
+    "fats": 80,
+    "water": 3
+  },
+  "programsV5": {
+    "push": {
+      "title": "JOUR 1 : PUSH",
+      "subtitle": "Pecs, Épaules, Triceps",
+      "shortLabel": "Push",
+      "color": "#005AA0",
+      "exercises": [
+        {
+          "id": "push_1",
+          "title": "Développé incliné 30° haltères",
+          "sets": 4,
+          "repsMin": 6,
+          "repsMax": 8,
+          "rir": "1-2",
+          "rest": 150,
+          "hasWarmupRamp": true,
+          "variants": [
+            "Développé incliné 30° haltères",
+            "Incliné barre / Smith machine"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "push_2",
+          "title": "Dips lestés",
+          "sets": 4,
+          "repsMin": 8,
+          "repsMax": 10,
+          "rir": "1-2",
+          "rest": 120,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Dips lestés",
+            "Presse à pecs déclinée / Pompes déficit"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "push_3",
+          "title": "Écartés poulie hauteur d'épaule",
+          "sets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Écartés poulie hauteur d'épaule",
+            "Pec Deck machine"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "push_4",
+          "title": "Développé militaire haltères",
+          "sets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "rir": "1-2",
+          "rest": 120,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Développé militaire haltères",
+            "Machine Shoulder Press"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "push_5",
+          "title": "Élévations latérales poulie basse",
+          "sets": 4,
+          "repsMin": 12,
+          "repsMax": 15,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Élévations latérales poulie basse",
+            "Haltères / Machine latérale"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "push_6",
+          "title": "Extensions triceps poulie haute",
+          "sets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Extensions triceps poulie haute",
+            "Barre au front EZ"
+          ],
+          "activeVariantIndex": 0
+        }
+      ]
+    },
+    "pull": {
+      "title": "JOUR 2 : PULL",
+      "subtitle": "Dos, Arrière d'épaule, Biceps, Lombaires",
+      "shortLabel": "Pull",
+      "color": "#7c3aed",
+      "exercises": [
+        {
+          "id": "pull_1",
+          "title": "Tractions pronation lestées",
+          "sets": 4,
+          "repsMin": 6,
+          "repsMax": 8,
+          "rir": "1-2",
+          "rest": 150,
+          "hasWarmupRamp": true,
+          "variants": [
+            "Tractions pronation lestées",
+            "Tirage vertical poitrine prise large"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "pull_2",
+          "title": "Rowing haltère bûcheron",
+          "sets": 4,
+          "repsMin": 8,
+          "repsMax": 10,
+          "rir": "1-2",
+          "rest": 120,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Rowing haltère bûcheron",
+            "Rowing barre supination / T-Bar"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "pull_3",
+          "title": "Tirage horizontal poulie prise large",
+          "sets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "rir": "1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Tirage horizontal poulie prise large",
+            "Machine Rowing assis"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "pull_4",
+          "title": "Face-pull poulie",
+          "sets": 3,
+          "repsMin": 15,
+          "repsMax": 15,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Face-pull poulie",
+            "Oiseau machine / Haltères"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "pull_5",
+          "title": "Barbell Curl barre EZ",
+          "sets": 4,
+          "repsMin": 8,
+          "repsMax": 12,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Barbell Curl barre EZ",
+            "Curl poulie basse barre"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "pull_6",
+          "title": "Banc à lombaires lesté",
+          "sets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "rir": "1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Banc à lombaires lesté",
+            "Good morning léger"
+          ],
+          "activeVariantIndex": 0
+        }
+      ]
+    },
+    "legs": {
+      "title": "JOUR 3 : LEGS",
+      "subtitle": "Cuisses, Ischios, Mollets, Abdos",
+      "shortLabel": "Legs",
+      "color": "#10b981",
+      "exercises": [
+        {
+          "id": "legs_1",
+          "title": "Presse à cuisses 45°",
+          "sets": 4,
+          "repsMin": 6,
+          "repsMax": 8,
+          "rir": "1-2",
+          "rest": 150,
+          "hasWarmupRamp": true,
+          "variants": [
+            "Presse à cuisses 45°",
+            "Hack Squat / Pendulum Squat"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "legs_2",
+          "title": "Soulevé de terre roumain (RDL)",
+          "sets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "rir": "1-2",
+          "rest": 120,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Soulevé de terre roumain (RDL)",
+            "Hip Thrust lourd"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "legs_3",
+          "title": "Leg extension machine",
+          "sets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Leg extension machine",
+            "Sissy Squat / Goblet Squat"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "legs_4",
+          "title": "Leg curl assis ou allongé",
+          "sets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Leg curl assis ou allongé",
+            "Swiss Ball Curl"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "legs_5",
+          "title": "Mollets debout machine",
+          "sets": 4,
+          "repsMin": 12,
+          "repsMax": 15,
+          "rir": "0",
+          "rest": 60,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Mollets debout machine",
+            "Mollets à la presse"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "legs_6",
+          "title": "Relevés de jambes suspendu",
+          "sets": 4,
+          "repsMin": 12,
+          "repsMax": 15,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Relevés de jambes suspendu",
+            "Crunch poulie haute"
+          ],
+          "activeVariantIndex": 0
+        }
+      ]
+    },
+    "upper": {
+      "title": "JOUR 4 : UPPER V-TAPER",
+      "subtitle": "Rappel Haut & Prépa Calisthénie",
+      "shortLabel": "Upper",
+      "color": "#f59e0b",
+      "exercises": [
+        {
+          "id": "up_1",
+          "title": "Développé couché 0° haltères",
+          "sets": 4,
+          "repsMin": 6,
+          "repsMax": 8,
+          "rir": "1-2",
+          "rest": 120,
+          "hasWarmupRamp": true,
+          "variants": [
+            "Développé couché 0° haltères",
+            "Développé barre / Machine convergente"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "up_2",
+          "title": "Tractions prise neutre lestées",
+          "sets": 4,
+          "repsMin": 8,
+          "repsMax": 10,
+          "rir": "1-2",
+          "rest": 120,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Tractions prise neutre lestées",
+            "Tirage vertical prise serrée"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "up_3",
+          "title": "Pike Push-ups pieds surélevés",
+          "sets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "rir": "1-2",
+          "rest": 120,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Pike Push-ups pieds surélevés",
+            "Développé militaire machine"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "up_4",
+          "title": "Élévations latérales haltères",
+          "sets": 4,
+          "repsMin": 12,
+          "repsMax": 15,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Élévations latérales haltères",
+            "Poulie basse / Machine"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "up_5",
+          "title": "Superset : Curl incliné + Pushdown corde",
+          "sets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Superset : Curl incliné + Pushdown corde",
+            "Curl poulie + Barre V"
+          ],
+          "activeVariantIndex": 0
+        }
+      ]
+    },
+    "lower": {
+      "title": "JOUR 5 : LOWER EXPRESS",
+      "subtitle": "Unilatéral & Gainage Calisthénie",
+      "shortLabel": "Lower",
+      "color": "#06b6d4",
+      "exercises": [
+        {
+          "id": "low_1",
+          "title": "Fentes bulgares haltères",
+          "sets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "rir": "1",
+          "rest": 120,
+          "hasWarmupRamp": true,
+          "variants": [
+            "Fentes bulgares haltères",
+            "Presse unilatérale"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "low_2",
+          "title": "Leg curl assis ou allongé",
+          "sets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Leg curl assis ou allongé",
+            "RDL unilatéral haltère"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "low_3",
+          "title": "Superset Adducteurs + Abducteurs",
+          "sets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "rir": "0-1",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Superset Adducteurs + Abducteurs",
+            "Cossack Squat"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "low_4",
+          "title": "Mollets assis machine",
+          "sets": 4,
+          "repsMin": 12,
+          "repsMax": 15,
+          "rir": "0",
+          "rest": 60,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Mollets assis machine",
+            "Mollets presse"
+          ],
+          "activeVariantIndex": 0
+        },
+        {
+          "id": "low_5",
+          "title": "Superset : L-Sit + Hollow Body Hold",
+          "sets": 3,
+          "repsMin": 20,
+          "repsMax": 45,
+          "rir": "Max sec",
+          "rest": 90,
+          "hasWarmupRamp": false,
+          "variants": [
+            "Superset : L-Sit + Hollow Body Hold",
+            "L-Sit au sol"
+          ],
+          "activeVariantIndex": 0
+        }
+      ]
+    }
+  },
+  "workoutCalendarV5": {},
+  "machineLibrary": {
+    "developpe_incline_30_halteres": {
+      "name": "Développé incliné 30° haltères"
+    },
+    "incline_barre_smith_machine": {
+      "name": "Incliné barre / Smith machine"
+    },
+    "dips_lestes": {
+      "name": "Dips lestés"
+    },
+    "presse_a_pecs_declinee_pompes_deficit": {
+      "name": "Presse à pecs déclinée / Pompes déficit"
+    },
+    "ecartes_poulie_hauteur_d_epaule": {
+      "name": "Écartés poulie hauteur d'épaule"
+    },
+    "pec_deck_machine": {
+      "name": "Pec Deck machine"
+    },
+    "developpe_militaire_halteres": {
+      "name": "Développé militaire haltères"
+    },
+    "machine_shoulder_press": {
+      "name": "Machine Shoulder Press"
+    },
+    "elevations_laterales_poulie_basse": {
+      "name": "Élévations latérales poulie basse"
+    },
+    "halteres_machine_laterale": {
+      "name": "Haltères / Machine latérale"
+    },
+    "extensions_triceps_poulie_haute": {
+      "name": "Extensions triceps poulie haute"
+    },
+    "barre_au_front_ez": {
+      "name": "Barre au front EZ"
+    },
+    "tractions_pronation_lestees": {
+      "name": "Tractions pronation lestées"
+    },
+    "tirage_vertical_poitrine_prise_large": {
+      "name": "Tirage vertical poitrine prise large"
+    },
+    "rowing_haltere_bucheron": {
+      "name": "Rowing haltère bûcheron"
+    },
+    "rowing_barre_supination_t_bar": {
+      "name": "Rowing barre supination / T-Bar"
+    },
+    "tirage_horizontal_poulie_prise_large": {
+      "name": "Tirage horizontal poulie prise large"
+    },
+    "machine_rowing_assis": {
+      "name": "Machine Rowing assis"
+    },
+    "face_pull_poulie": {
+      "name": "Face-pull poulie"
+    },
+    "oiseau_machine_halteres": {
+      "name": "Oiseau machine / Haltères"
+    },
+    "barbell_curl_barre_ez": {
+      "name": "Barbell Curl barre EZ"
+    },
+    "curl_poulie_basse_barre": {
+      "name": "Curl poulie basse barre"
+    },
+    "banc_a_lombaires_leste": {
+      "name": "Banc à lombaires lesté"
+    },
+    "good_morning_leger": {
+      "name": "Good morning léger"
+    },
+    "presse_a_cuisses_45": {
+      "name": "Presse à cuisses 45°"
+    },
+    "hack_squat_pendulum_squat": {
+      "name": "Hack Squat / Pendulum Squat"
+    },
+    "souleve_de_terre_roumain_rdl": {
+      "name": "Soulevé de terre roumain (RDL)"
+    },
+    "hip_thrust_lourd": {
+      "name": "Hip Thrust lourd"
+    },
+    "leg_extension_machine": {
+      "name": "Leg extension machine"
+    },
+    "sissy_squat_goblet_squat": {
+      "name": "Sissy Squat / Goblet Squat"
+    },
+    "leg_curl_assis_ou_allonge": {
+      "name": "Leg curl assis ou allongé"
+    },
+    "swiss_ball_curl": {
+      "name": "Swiss Ball Curl"
+    },
+    "mollets_debout_machine": {
+      "name": "Mollets debout machine"
+    },
+    "mollets_a_la_presse": {
+      "name": "Mollets à la presse"
+    },
+    "releves_de_jambes_suspendu": {
+      "name": "Relevés de jambes suspendu"
+    },
+    "crunch_poulie_haute": {
+      "name": "Crunch poulie haute"
+    },
+    "developpe_couche_0_halteres": {
+      "name": "Développé couché 0° haltères"
+    },
+    "developpe_barre_machine_convergente": {
+      "name": "Développé barre / Machine convergente"
+    },
+    "tractions_prise_neutre_lestees": {
+      "name": "Tractions prise neutre lestées"
+    },
+    "tirage_vertical_prise_serree": {
+      "name": "Tirage vertical prise serrée"
+    },
+    "pike_push_ups_pieds_sureleves": {
+      "name": "Pike Push-ups pieds surélevés"
+    },
+    "developpe_militaire_machine": {
+      "name": "Développé militaire machine"
+    },
+    "elevations_laterales_halteres": {
+      "name": "Élévations latérales haltères"
+    },
+    "poulie_basse_machine": {
+      "name": "Poulie basse / Machine"
+    },
+    "superset_curl_incline_pushdown_corde": {
+      "name": "Superset : Curl incliné + Pushdown corde"
+    },
+    "curl_poulie_barre_v": {
+      "name": "Curl poulie + Barre V"
+    },
+    "fentes_bulgares_halteres": {
+      "name": "Fentes bulgares haltères"
+    },
+    "presse_unilaterale": {
+      "name": "Presse unilatérale"
+    },
+    "rdl_unilateral_haltere": {
+      "name": "RDL unilatéral haltère"
+    },
+    "superset_adducteurs_abducteurs": {
+      "name": "Superset Adducteurs + Abducteurs"
+    },
+    "cossack_squat": {
+      "name": "Cossack Squat"
+    },
+    "mollets_assis_machine": {
+      "name": "Mollets assis machine"
+    },
+    "mollets_presse": {
+      "name": "Mollets presse"
+    },
+    "superset_l_sit_hollow_body_hold": {
+      "name": "Superset : L-Sit + Hollow Body Hold"
+    },
+    "l_sit_au_sol": {
+      "name": "L-Sit au sol"
+    }
+  },
+  "machineLogs": {},
+  "nutriLogs": {
+    "2026-11-12": {
+      "water": 0,
+      "kcal": 0,
+      "prot": 0,
+      "carbs": 0,
+      "fats": 0,
+      "meals": []
+    }
+  },
+  "favMeals": [
+    {
+      "name": "🥣 Petit-Déj Avoine/Œufs",
+      "kcal": 650,
+      "prot": 35,
+      "carbs": 75,
+      "fats": 22
+    },
+    {
+      "name": "🥤 Shaker + Banane",
+      "kcal": 240,
+      "prot": 26,
+      "carbs": 28,
+      "fats": 2
+    },
+    {
+      "name": "🍱 Gamelle Poulet & Riz",
+      "kcal": 750,
+      "prot": 48,
+      "carbs": 95,
+      "fats": 18
+    },
+    {
+      "name": "🍝 Steak 5% & Pâtes",
+      "kcal": 720,
+      "prot": 45,
+      "carbs": 90,
+      "fats": 16
+    },
+    {
+      "name": "🥜 FB + Beurre Cacahuète",
+      "kcal": 380,
+      "prot": 24,
+      "carbs": 18,
+      "fats": 22
+    },
+    {
+      "name": "🌰 Poignée d'Amandes",
+      "kcal": 180,
+      "prot": 6,
+      "carbs": 4,
+      "fats": 16
+    }
+  ],
+  "weights": [],
+  "meta": {
+    "weight": 70,
+    "sessions": 0
+  }
+}
