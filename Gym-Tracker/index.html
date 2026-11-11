@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <!-- Empêche le zoom intempestif sur iPhone quand tu cliques sur un champ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Transforme le site en application plein écran sur iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>V-Taper Tracker</title>
+    
+    <!-- LIEN 1 : On connecte la feuille de style CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- BARRE DU HAUT : Titre + Chronomètre de repos -->
+    <header class="app-header">
+        <div>
+            <h1 id="workout-title">CHARGEMENT...</h1>
+            <p id="workout-subtitle"></p>
+        </div>
+        <div id="timer-box" class="timer-idle" onclick="resetTimer()">
+            <span id="timer-display">00:00</span>
+        </div>
+    </header>
+
+    <!-- NAVIGATION : Choix de la séance (J1 à J5) -->
+    <nav class="day-selector">
+        <button class="day-btn active" onclick="loadWorkout('push', this)">Push</button>
+        <button class="day-btn" onclick="loadWorkout('pull', this)">Pull</button>
+        <button class="day-btn" onclick="loadWorkout('legs', this)">Legs</button>
+        <button class="day-btn" onclick="loadWorkout('upper', this)">Upper</button>
+        <button class="day-btn" onclick="loadWorkout('lower', this)">Lower</button>
+    </nav>
+
+    <!-- ZONE PRINCIPALE : C'est ici que JavaScript va injecter les exercices -->
+    <main id="workout-container"></main>
+
+    <!-- BOUTON DE SAUVEGARDE DE FIN DE SÉANCE -->
+    <footer class="app-footer">
+        <div style="display:flex; gap:8px; margin-top:8px;">
+            <button onclick="exportData()" style="flex:1; background:#24242f; color:#9ca3af; border:1px solid #2e2e3a; padding:8px; border-radius:8px; font-size:0.75rem;">📤 Copier Backup</button>
+            <button onclick="importData()" style="flex:1; background:#24242f; color:#9ca3af; border:1px solid #2e2e3a; padding:8px; border-radius:8px; font-size:0.75rem;">📥 Restaurer</button>
+        </div>
+        <button class="save-btn" onclick="saveWorkoutSession()">💾 Valider & Sauvegarder la séance</button>
+    </footer>
+
+    <!-- LIENS 2 & 3 : On charge d'abord les données, puis le moteur JS -->
+    <script src="programData.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
