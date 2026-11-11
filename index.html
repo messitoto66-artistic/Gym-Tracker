@@ -1,53 +1,409 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
-    <!-- Empêche le zoom intempestif sur iPhone quand tu cliques sur un champ -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Transforme le site en application plein écran sur iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>V-Taper Tracker</title>
-    
-    <!-- LIEN 1 : On connecte la feuille de style CSS -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>V-Taper Tracker V5.3</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-    <!-- BARRE DU HAUT : Titre + Chronomètre de repos -->
+    <!-- HEADER GLOBAL FIXE (Épuré) -->
     <header class="app-header">
         <div>
-            <h1 id="workout-title">CHARGEMENT...</h1>
-            <p id="workout-subtitle"></p>
+            <h1 id="header-title">Tableau de bord</h1>
+            <p id="header-subtitle">Objectif 80 kg · V-Taper & Calisthénie</p>
         </div>
-        <div id="timer-box" class="timer-idle" onclick="resetTimer()">
-            <span id="timer-display">00:00</span>
+        <div class="timer-wrapper">
+            <button class="timer-adj-btn" onclick="adjustTimer(-30)">-30s</button>
+            <div id="timer-box" class="timer-idle" onclick="resetTimer()">
+                <span id="timer-display">00:00</span>
+            </div>
+            <button class="timer-adj-btn" onclick="adjustTimer(30)">+30s</button>
         </div>
     </header>
 
-    <!-- NAVIGATION : Choix de la séance (J1 à J5) -->
-    <nav class="day-selector">
-        <button class="day-btn active" onclick="loadWorkout('push', this)">Push</button>
-        <button class="day-btn" onclick="loadWorkout('pull', this)">Pull</button>
-        <button class="day-btn" onclick="loadWorkout('legs', this)">Legs</button>
-        <button class="day-btn" onclick="loadWorkout('upper', this)">Upper</button>
-        <button class="day-btn" onclick="loadWorkout('lower', this)">Lower</button>
+    <!-- =========================================================
+         VUE 1 : HOME (AVEC MODIFICATION EN BAS DE PAGE)
+    ========================================================== -->
+    <section id="view-home" class="app-view active">
+
+        <!-- Conteneur dynamique des 4 blocs de l'accueil -->
+        <div id="home-cards-container" style="display:flex; flex-direction:column; gap:14px;">
+
+            <!-- BLOC 1 : Calendrier d'Assiduité -->
+            <div class="dash-card" id="home-block-calendar" data-block-id="calendar">
+                <div class="dash-card-header">
+                    <div class="cal-nav">
+                        <button class="cal-nav-btn" onclick="changeHomeMonth(-1)">‹</button>
+                        <span class="dash-label" id="cal-month-title">MOIS</span>
+                        <button class="cal-nav-btn" onclick="changeHomeMonth(1)">›</button>
+                    </div>
+                    <span class="badge badge-up" id="cal-month-count">0 séance</span>
+                </div>
+                <div class="cal-weekdays">
+                    <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                </div>
+                <div id="calendar-grid" class="cal-grid"></div>
+                <div id="calendar-legend" class="cal-legend"></div>
+            </div>
+
+            <!-- BLOC 2 : Entraînement sélectionné -->
+            <div class="dash-card highlight-card" id="home-block-workout" data-block-id="workout">
+                <div class="dash-card-header">
+                    <span class="dash-label">ENTRAÎNEMENT SÉLECTIONNÉ</span>
+                    <span class="badge badge-up">Prêt</span>
+                </div>
+                <h2 class="dash-workout-title" id="home-next-workout">JOUR 1 : PUSH</h2>
+                <p class="dash-workout-sub" id="home-next-sub">Pecs, Épaules, Triceps</p>
+                <button class="primary-btn" id="home-gym-btn" onclick="switchTab('gym')">🏋️ Ouvrir le Mode Gym ›</button>
+            </div>
+
+            <!-- BLOC 3 : Résumé Nutrition -->
+            <div class="dash-card" id="home-block-nutri" data-block-id="nutri" onclick="switchTab('nutri')">
+                <div class="dash-card-header">
+                    <span class="dash-label">NUTRITION DU JOUR</span>
+                    <span class="dash-link">Gérer ›</span>
+                </div>
+                <div class="kcal-hero">
+                    <span id="home-kcal">0</span> <small id="home-kcal-target">/ 2700 kcal</small>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="home-kcal-bar" class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                <div class="macros-grid">
+                    <div class="macro-item"><span class="macro-name">Protéines</span><strong id="home-prot">0 / 150g</strong></div>
+                    <div class="macro-item"><span class="macro-name">Glucides</span><strong id="home-carbs">0 / 330g</strong></div>
+                    <div class="macro-item"><span class="macro-name">Lipides</span><strong id="home-fats">0 / 80g</strong></div>
+                </div>
+            </div>
+
+            <!-- BLOC 4 : Hydratation -->
+            <div class="dash-card" id="home-block-water" data-block-id="water">
+                <div class="dash-card-header">
+                    <span class="dash-label">HYDRATATION (AUJOURD'HUI)</span>
+                    <strong id="home-water">0.0 / 3.0 L</strong>
+                </div>
+                <div class="progress-bar-bg" style="margin-bottom: 12px;">
+                    <div id="home-water-bar" class="progress-bar-fill water-fill" style="width: 0%;"></div>
+                </div>
+                <div class="quick-btns">
+                    <button onclick="addWater(0.25)">+ 25 cl</button>
+                    <button onclick="addWater(0.50)">+ 50 cl</button>
+                    <button onclick="addWater(-0.25)">- 25 cl</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- NOUVEAU : Bouton & Tiroir de personnalisation tout en bas de l'Accueil -->
+        <div class="dash-card">
+            <div class="dash-card-header" style="margin-bottom:0;">
+                <span class="dash-label">⚙️ AFFICHAGE DU TABLEAU DE BORD</span>
+                <button class="mini-tool-btn" onclick="toggleHomeEditDrawer()">✏️ Modifier</button>
+            </div>
+
+            <div id="home-edit-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div>
+                        <label style="font-size:0.65rem; font-weight:800; color:var(--text-muted);">TITRE DE LA PAGE</label>
+                        <input type="text" id="cfg-home-title" class="set-input" style="background:#fff; text-align:left; padding:8px 12px; margin-top:3px;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.65rem; font-weight:800; color:var(--text-muted);">DESCRIPTION / OBJECTIF</label>
+                        <input type="text" id="cfg-home-sub" class="set-input" style="background:#fff; text-align:left; padding:8px 12px; margin-top:3px;">
+                    </div>
+                    <div style="margin-top:4px;">
+                        <label style="font-size:0.65rem; font-weight:800; color:var(--text-muted);">ORDRE D'AFFICHAGE DES CARTES</label>
+                        <div id="home-order-list" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;"></div>
+                    </div>
+                    <button class="primary-btn" style="padding:10px; margin-top:4px;" onclick="saveHomeCustomization()">✅ Enregistrer l'affichage</button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- =========================================================
+         VUE 2 : GYM MODE
+    ========================================================== -->
+    <section id="view-gym" class="app-view">
+        
+        <nav id="day-selector-bar" class="day-selector"></nav>
+
+        <div class="program-toolbar">
+            <label class="color-picker-badge">
+                🎨 Couleur
+                <input type="color" id="workout-color-picker" onchange="changeCurrentWorkoutColor(this.value)">
+            </label>
+            <div style="display:flex; gap:6px;">
+                <button class="mini-tool-btn" onclick="renameCurrentWorkout()">✏️ Renommer</button>
+                <button class="mini-tool-btn danger" onclick="deleteCurrentWorkout()">🗑️ Suppr. Séance</button>
+            </div>
+        </div>
+
+        <div id="workout-container"></div>
+
+        <div class="dash-card" style="border-style: dashed;">
+            <span class="dash-label">➕ AJOUTER UN EXERCICE À CETTE SÉANCE</span>
+            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+                <input type="text" id="new-exo-title" class="set-input" placeholder="1. Titre de l'exercice (ex: Pour des gros bras, Pecs Haut...)" style="text-align:left; padding-left:12px;">
+                <select id="library-machine-select" class="machine-select" onchange="onSelectLibraryMachine(this.value)">
+                    <option value="">-- Choisir une machine dans ma bibliothèque --</option>
+                </select>
+                <input type="text" id="new-exo-machine" class="set-input" placeholder="2. Nom de la machine (ex: Curl Barre EZ, Poulie Matrix...)" style="text-align:left; padding-left:12px;">
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
+                    <input type="number" id="new-exo-sets" class="set-input" placeholder="Séries" value="3">
+                    <input type="number" id="new-exo-min" class="set-input" placeholder="Min" value="8">
+                    <input type="number" id="new-exo-max" class="set-input" placeholder="Max" value="12">
+                    <input type="number" id="new-exo-rest" class="set-input" placeholder="Repos(s)" value="90">
+                </div>
+                <button class="secondary-btn" onclick="addExerciseToCurrentWorkout()">+ Ajouter l'exercice à la séance</button>
+            </div>
+        </div>
+
+        <div class="gym-save-zone">
+            <button class="primary-btn" id="gym-save-btn" onclick="saveWorkoutSession()">💾 Valider & Sauvegarder la séance</button>
+        </div>
+
+    </section>
+
+    <!-- =========================================================
+         VUE 3 : NUTRITION
+    ========================================================== -->
+    <section id="view-nutri" class="app-view">
+        
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <div class="cal-nav">
+                    <button class="cal-nav-btn" onclick="changeNutriMonth(-1)">‹</button>
+                    <span class="dash-label" id="nutri-cal-title">MOIS</span>
+                    <button class="cal-nav-btn" onclick="changeNutriMonth(1)">›</button>
+                </div>
+                <div style="display:flex; gap:6px; font-size:0.68rem; font-weight:700;">
+                    <span style="color:#047857;" id="nutri-cal-legend-ok">🟢 ≥2700</span>
+                    <span style="color:#b45309;" id="nutri-cal-legend-low">🟠 &lt;2700</span>
+                </div>
+            </div>
+            <div class="cal-weekdays">
+                <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+            </div>
+            <div id="nutri-calendar-grid" class="cal-grid"></div>
+        </div>
+
+        <div class="dash-card highlight-card">
+            <div class="dash-card-header">
+                <span class="dash-label" id="nutri-selected-date-label">BILAN DU JOUR</span>
+                <button class="swap-btn" onclick="resetNutriDay()">🔄 Vider ce jour</button>
+            </div>
+            <div class="kcal-hero">
+                <span id="nutri-kcal">0</span> <small id="nutri-kcal-target">/ 2700 kcal</small>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="nutri-kcal-bar" class="progress-bar-fill" style="width: 0%;"></div>
+            </div>
+            <div class="macros-grid">
+                <div class="macro-item"><span class="macro-name">Protéines</span><strong id="nutri-prot">0 / 150g</strong></div>
+                <div class="macro-item"><span class="macro-name">Glucides</span><strong id="nutri-carbs">0 / 330g</strong></div>
+                <div class="macro-item"><span class="macro-name">Lipides</span><strong id="nutri-fats">0 / 80g</strong></div>
+            </div>
+        </div>
+
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="dash-label">⭐ MES REPAS FAVORIS (1 TAP)</span>
+                <span style="font-size:0.7rem; color:var(--text-muted);">✕ pour supprimer</span>
+            </div>
+            <div id="favorites-grid" class="preset-grid" style="margin-top: 8px;"></div>
+        </div>
+
+        <div class="dash-card">
+            <span class="dash-label">➕ CRÉER UN REPAS / NOUVEAU FAVORI</span>
+            <input type="text" id="custom-food-name" class="set-input" placeholder="Nom (ex: Shaker, Gamelle Riz...)" style="margin: 10px 0 8px; text-align:left; padding-left:12px;">
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:10px;">
+                <input type="number" id="custom-kcal" class="set-input" placeholder="Kcal">
+                <input type="number" id="custom-prot" class="set-input" placeholder="Prot (g)">
+                <input type="number" id="custom-carbs" class="set-input" placeholder="Gluc (g)">
+                <input type="number" id="custom-fats" class="set-input" placeholder="Lip (g)">
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="primary-btn" style="flex:1;" onclick="addCustomMeal(false)">Ajouter au jour</button>
+                <button class="secondary-btn" style="flex:1;" onclick="addCustomMeal(true)">⭐ Sauver en favori</button>
+            </div>
+        </div>
+
+        <div class="dash-card">
+            <span class="dash-label">🍽️ REPAS ENREGISTRÉS CE JOUR</span>
+            <div id="meals-log-list" style="margin-top: 10px;"></div>
+        </div>
+
+        <!-- Paramètres & Recalculateur de Bilan Calorique en fin de page -->
+        <div class="dash-card">
+            <div class="dash-card-header" style="margin-bottom:0;">
+                <span class="dash-label">⚙️ DONNÉES DE BASE & CALCULATEUR KCAL</span>
+                <button class="mini-tool-btn" onclick="toggleNutriCalcDrawer()">✏️ Modifier / Recalculer</button>
+            </div>
+
+            <div id="nutri-calc-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
+                <p style="font-size:0.74rem; color:var(--text-muted); margin-bottom:10px;">
+                    Entre tes données physiques pour recalculer automatiquement tes besoins (Mifflin-St Jeor) ou ajuste tes cibles manuellement.
+                </p>
+                <div class="settings-grid">
+                    <div class="settings-field"><label>Poids (kg)</label><input type="number" step="0.1" id="calc-weight" value="70"></div>
+                    <div class="settings-field"><label>Taille (cm)</label><input type="number" id="calc-height" value="178"></div>
+                    <div class="settings-field"><label>Âge</label><input type="number" id="calc-age" value="22"></div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+                    <div class="settings-field">
+                        <label>Activité physique</label>
+                        <select id="calc-activity" class="machine-select" style="width:100%; background:#fff;">
+                            <option value="1.375">Léger (1-2 séances/sem)</option>
+                            <option value="1.55" selected>Actif (3-5 séances/sem)</option>
+                            <option value="1.725">Très actif (5-6 séances + marche)</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label>Objectif (Surplus/Déficit)</label>
+                        <select id="calc-goal" class="machine-select" style="width:100%; background:#fff;">
+                            <option value="300" selected>Prise de masse propre (+300 kcal)</option>
+                            <option value="500">Prise de masse rapide (+500 kcal)</option>
+                            <option value="0">Maintien (0 kcal)</option>
+                            <option value="-400">Sèche (-400 kcal)</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="secondary-btn" style="width:100%; padding:9px; margin-bottom:12px; font-size:0.82rem;" onclick="computeMetabolicTargets()">
+                    🔄 Calculer automatiquement mes macros
+                </button>
+
+                <div style="border-top:1px solid var(--border); padding-top:10px;">
+                    <label style="font-size:0.65rem; font-weight:800; color:var(--text-muted);">CIBLES QUOTIDIENNES ACTIVES (MODIFIABLES) :</label>
+                    <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-top:6px;">
+                        <div class="settings-field"><label>Kcal</label><input type="number" id="target-kcal" value="2700"></div>
+                        <div class="settings-field"><label>Prot(g)</label><input type="number" id="target-prot" value="150"></div>
+                        <div class="settings-field"><label>Gluc(g)</label><input type="number" id="target-carbs" value="330"></div>
+                        <div class="settings-field"><label>Lip(g)</label><input type="number" id="target-fats" value="80"></div>
+                        <div class="settings-field"><label>Eau(L)</label><input type="number" step="0.1" id="target-water" value="3.0"></div>
+                    </div>
+                    <button class="primary-btn" style="margin-top:10px; padding:10px;" onclick="saveNutriTargets()">💾 Appliquer ce nouveau bilan</button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- =========================================================
+         VUE 4 : PROGRÈS, COURBES & SYNCHRONISATION GITHUB
+    ========================================================== -->
+    <section id="view-progress" class="app-view">
+        
+        <div class="dash-card highlight-card">
+            <span class="dash-label">📊 SYNTHÈSE GLOBALE DES PERFORMANCES</span>
+            <div id="muscle-summary-grid" class="summary-grid" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="dash-label">📈 ÉVOLUTION PAR MACHINE (1RM & CHARGES)</span>
+            </div>
+            <select id="progress-machine-select" class="machine-select" style="width:100%; margin-bottom:12px;" onchange="renderMachineProgressChart()">
+            </select>
+            <div id="machine-chart-box" class="chart-container"></div>
+            <div id="machine-history-log" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;"></div>
+        </div>
+
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="dash-label">⚖️ TRAJECTOIRE POIDS (<span id="current-weight-display">70.0</span> ➔ 80 KG)</span>
+                <span class="badge badge-up" id="weight-diff-badge">+0.0 kg</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:14px;">
+                <input type="number" step="0.1" inputmode="decimal" id="weight-input-field" class="set-input" placeholder="Pesée à jeun (ex: 70.4)">
+                <button class="primary-btn" style="width:auto; padding:0 18px;" onclick="saveBodyWeight()">Noter</button>
+            </div>
+            <div id="weight-chart-box" class="chart-container"></div>
+        </div>
+
+        <div class="dash-card">
+            <span class="dash-label">🏆 BIBLIOTHÈQUE DES MACHINES & RECORDS</span>
+            <div id="records-list" style="margin-top: 10px; display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+
+        <!-- Sauvegarde Locale + Synchronisation Cloud GitHub -->
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="dash-label">💾 SAUVEGARDE & CLOUD GITHUB</span>
+                <button class="mini-tool-btn" onclick="toggleGithubConfigDrawer()">⚙️ Configurer GitHub</button>
+            </div>
+            <p style="font-size:0.76rem; color:var(--text-muted); margin:4px 0 12px;">
+                Tes données restent dans le cache de ton iPhone même éteint. Synchronise vers GitHub pour les sauvegarder dans ton fichier <code>backup.json</code>.
+            </p>
+
+            <!-- Boutons Presse-Papier -->
+            <div class="quick-btns" style="margin-bottom:8px;">
+                <button onclick="exportData()">📤 Copier Backup</button>
+                <button onclick="importData()">📥 Restaurer</button>
+            </div>
+
+            <!-- NOUVEAU : Boutons Synchronisation GitHub -->
+            <div style="display:flex; gap:8px;">
+                <button class="primary-btn" style="flex:1; padding:11px; font-size:0.84rem;" onclick="syncToGitHub()">☁️ Synchroniser vers GitHub</button>
+                <button class="secondary-btn" style="padding:11px 12px; font-size:0.82rem;" onclick="pullFromGitHub()">📲 Charger</button>
+            </div>
+            <div id="github-sync-status" style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; text-align:center;"></div>
+
+            <!-- Tiroir de configuration GitHub (Pseudo / Repo / Token) -->
+            <div id="github-config-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div>
+                        <label style="font-size:0.65rem; font-weight:800; color:var(--text-muted);">PSEUDO GITHUB (OWNER)</label>
+                        <input type="text" id="gh-owner" class="set-input" placeholder="ex: gael-espinoza" style="background:#fff; text-align:left; padding:8px 10px; margin-top:2px; font-size:0.82rem;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.65rem; font-weight:800; color:var(--text-muted);">NOM DU DÉPÔT (REPOSITORY)</label>
+                        <input type="text" id="gh-repo" class="set-input" placeholder="ex: gym-tracker" style="background:#fff; text-align:left; padding:8px 10px; margin-top:2px; font-size:0.82rem;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.65rem; font-weight:800; color:var(--text-muted);">PERSONAL ACCESS TOKEN (CLÉ GITHUB)</label>
+                        <input type="password" id="gh-token" class="set-input" placeholder="ghp_xxxxxxxxxxxx" style="background:#fff; text-align:left; padding:8px 10px; margin-top:2px; font-size:0.82rem;">
+                    </div>
+                    <button class="primary-btn" style="padding:9px; font-size:0.82rem;" onclick="saveGithubConfig()">Enregistrer mes accès GitHub</button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- MODALE DE SÉLECTION DE SÉANCE SUR LE CALENDRIER D'ACCUEIL -->
+    <div id="cal-picker-modal" class="modal-overlay" onclick="closeCalModal(event)">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="dash-card-header" style="margin-bottom:12px;">
+                <span class="dash-label" id="modal-date-title">CHOISIR LA SÉANCE DU JOUR</span>
+                <button class="fav-del-x" style="position:static;" onclick="closeCalModal()">✕</button>
+            </div>
+            <div id="modal-workout-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+    </div>
+
+    <!-- TAB BAR iOS -->
+    <nav class="bottom-tab-bar">
+        <button class="tab-item active" id="tab-home" onclick="switchTab('home')">
+            <span class="tab-icon">🏠</span><span class="tab-label">Accueil</span>
+        </button>
+        <button class="tab-item" id="tab-gym" onclick="switchTab('gym')">
+            <span class="tab-icon">🏋️</span><span class="tab-label">Gym</span>
+        </button>
+        <button class="tab-item" id="tab-nutri" onclick="switchTab('nutri')">
+            <span class="tab-icon">🥗</span><span class="tab-label">Nutri</span>
+        </button>
+        <button class="tab-item" id="tab-progress" onclick="switchTab('progress')">
+            <span class="tab-icon">📈</span><span class="tab-label">Progrès</span>
+        </button>
     </nav>
 
-    <!-- ZONE PRINCIPALE : C'est ici que JavaScript va injecter les exercices -->
-    <main id="workout-container"></main>
-
-    <!-- BOUTON DE SAUVEGARDE DE FIN DE SÉANCE -->
-    <footer class="app-footer">
-        <div style="display:flex; gap:8px; margin-top:8px;">
-            <button onclick="exportData()" style="flex:1; background:#24242f; color:#9ca3af; border:1px solid #2e2e3a; padding:8px; border-radius:8px; font-size:0.75rem;">📤 Copier Backup</button>
-            <button onclick="importData()" style="flex:1; background:#24242f; color:#9ca3af; border:1px solid #2e2e3a; padding:8px; border-radius:8px; font-size:0.75rem;">📥 Restaurer</button>
-        </div>
-        <button class="save-btn" onclick="saveWorkoutSession()">💾 Valider & Sauvegarder la séance</button>
-    </footer>
-
-    <!-- LIENS 2 & 3 : On charge d'abord les données, puis le moteur JS -->
     <script src="programData.js"></script>
     <script src="app.js"></script>
 </body>

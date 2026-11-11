@@ -1,0 +1,9 @@
+{
+  "name": "V-Taper Tracker",
+  "short_name": "V-Taper",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d0d11",
+  "theme_color": "#f4f6f9",
+  "orientation": "portrait"
+}
