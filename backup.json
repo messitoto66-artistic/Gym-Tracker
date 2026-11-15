@@ -1,23 +1,23 @@
 {
   "version": "4.5",
-  "updatedAt": "15/11/2026 22:54:27",
+  "updatedAt": "15/11/2026 23:01:18",
   "homeConfig": {
     "title": "Accueil",
     "subtitle": "Objectif 80 kg & Calisthénie",
     "order": [
+      "workout",
       "calendar",
-      "nutri",
-      "workout"
+      "nutri"
     ]
   },
   "nutriOrder": [
-    "calendar",
     "summary",
     "favorites",
-    "log"
+    "log",
+    "calendar"
   ],
   "nutriTargets": {
-    "weight": 70,
+    "weight": 67,
     "height": 178,
     "age": 22,
     "activity": 1.55,
@@ -497,7 +497,21 @@
     "2026-11-07": "upper",
     "2026-11-08": "lower",
     "2026-11-09": "push",
-    "2026-11-11": "pull"
+    "2026-11-11": "pull",
+    "2026-10-05": "upper",
+    "2026-10-06": "lower",
+    "2026-10-08": "upper",
+    "2026-10-09": "lower",
+    "2026-10-12": "upper",
+    "2026-10-13": "lower",
+    "2026-10-15": "upper",
+    "2026-10-16": "lower",
+    "2026-10-19": "push",
+    "2026-10-21": "pull",
+    "2026-10-23": "legs",
+    "2026-10-26": "push",
+    "2026-10-28": "pull",
+    "2026-10-30": "legs"
   },
   "machineLibrary": {
     "developpe_incline_30_halteres": {
@@ -732,20 +746,6 @@
   },
   "favMeals": [
     {
-      "name": "🥣 Petit-Déj Avoine/Œufs",
-      "kcal": 650,
-      "prot": 35,
-      "carbs": 75,
-      "fats": 22
-    },
-    {
-      "name": "🥤 Shaker + Banane",
-      "kcal": 240,
-      "prot": 26,
-      "carbs": 28,
-      "fats": 2
-    },
-    {
       "name": "🍱 Gamelle Poulet & Riz",
       "kcal": 750,
       "prot": 48,
@@ -757,20 +757,6 @@
       "kcal": 720,
       "prot": 45,
       "carbs": 90,
-      "fats": 16
-    },
-    {
-      "name": "🥜 FB + Beurre Cacahuète",
-      "kcal": 380,
-      "prot": 24,
-      "carbs": 18,
-      "fats": 22
-    },
-    {
-      "name": "🌰 Poignée d'Amandes",
-      "kcal": 180,
-      "prot": 6,
-      "carbs": 4,
       "fats": 16
     },
     {
@@ -788,9 +774,14 @@
       "fats": 0
     }
   ],
-  "weights": [],
+  "weights": [
+    {
+      "date": "15/11",
+      "w": 67
+    }
+  ],
   "meta": {
-    "weight": 70,
+    "weight": 67,
     "sessions": 0
   }
 }
