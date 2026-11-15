@@ -6,6 +6,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Gym-Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">
+    <link rel="apple-touch-icon" href="./icon.svg">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -14,18 +16,22 @@
     <!-- NOTIFICATION TOAST MODERNE (Remplace les alert() iOS - A6) -->
     <div id="toast-notification" class="toast-pill">✅ Action enregistrée</div>
 
-    <!-- HEADER GLOBAL FIXE (Chrono intelligent - A5) -->
+    <!-- HEADER GLOBAL FIXE (Chrono intelligent, Dark Mode & Sourdine - V4.1) -->
     <header class="app-header">
         <div style="min-width: 0; padding-right: 8px;">
             <h1 id="header-title">Tableau de bord</h1>
             <p id="header-subtitle">Objectif 80 kg · V-Taper & Calisthénie</p>
         </div>
-        <div class="timer-wrapper" id="timer-wrapper">
-            <button class="timer-adj-btn timer-extra" onclick="adjustTimer(-30)">-30s</button>
-            <div id="timer-box" class="timer-idle" onclick="resetTimer()">
-                <span id="timer-display">⏱️ 00:00</span>
+        <div class="header-right-zone">
+            <button class="icon-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Basculer Mode Sombre/Clair">🌓</button>
+            <button class="icon-toggle-btn" id="sound-toggle-btn" onclick="toggleSound()" title="Activer/Couper les bips">🔊</button>
+            <div class="timer-wrapper" id="timer-wrapper">
+                <button class="timer-adj-btn timer-extra" onclick="adjustTimer(-30)">-30s</button>
+                <div id="timer-box" class="timer-idle" onclick="resetTimer()">
+                    <span id="timer-display">⏱️ 00:00</span>
+                </div>
+                <button class="timer-adj-btn timer-extra" onclick="adjustTimer(30)">+30s</button>
             </div>
-            <button class="timer-adj-btn timer-extra" onclick="adjustTimer(30)">+30s</button>
         </div>
     </header>
 
@@ -67,19 +73,46 @@
                 <button class="primary-btn" id="home-gym-btn" onclick="switchTab('gym')">Ouvrir le Mode Gym ›</button>
             </div>
 
-            <!-- BLOC 3 : Résumé Nutrition (Palette monochrome sobre - A3) -->
-            <div class="dash-card" id="home-block-nutri" data-block-id="nutri" onclick="switchTab('nutri')">
-                <div class="dash-card-header">
-                    <span class="card-title">Nutrition aujourd'hui</span>
+            <!-- BLOC 3 : Résumé Nutrition & Hydratation (Anneaux d'Activité & Hydratation intégrée - V4.1) -->
+            <div class="dash-card" id="home-block-nutri" data-block-id="nutri">
+                <div class="dash-card-header" onclick="switchTab('nutri')" style="cursor:pointer;">
+                    <span class="card-title">Nutrition & Hydratation</span>
                     <span class="dash-link">Détails ›</span>
                 </div>
-                <div class="kcal-hero">
-                    <span id="home-kcal">0</span> <small id="home-kcal-target">/ 2700 kcal</small>
+
+                <!-- Anneaux d'Activité (Calories, Protéines, Eau) + Hero Kcal -->
+                <div class="nutri-hero-with-rings">
+                    <div class="activity-rings-container" onclick="switchTab('nutri')" style="cursor:pointer;">
+                        <svg class="activity-rings-svg" viewBox="0 0 120 120" width="96" height="96">
+                            <!-- Anneau 1 : Calories (Rouge/Rose) R=48, C=2*PI*48 ~= 301.6 -->
+                            <circle cx="60" cy="60" r="48" class="ring-bg ring-cal-bg" stroke-width="9"/>
+                            <circle id="ring-cal" cx="60" cy="60" r="48" class="ring-fg ring-cal-fg" stroke-width="9" stroke-dasharray="301.6" stroke-dashoffset="301.6"/>
+                            <!-- Anneau 2 : Protéines (Émeraude) R=36, C=2*PI*36 ~= 226.2 -->
+                            <circle cx="60" cy="60" r="36" class="ring-bg ring-prot-bg" stroke-width="9"/>
+                            <circle id="ring-prot" cx="60" cy="60" r="36" class="ring-fg ring-prot-fg" stroke-width="9" stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
+                            <!-- Anneau 3 : Hydratation (Bleu Cyan) R=24, C=2*PI*24 ~= 150.8 -->
+                            <circle cx="60" cy="60" r="24" class="ring-bg ring-water-bg" stroke-width="9"/>
+                            <circle id="ring-water" cx="60" cy="60" r="24" class="ring-fg ring-water-fg" stroke-width="9" stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+                        </svg>
+                    </div>
+
+                    <div class="nutri-hero-stats">
+                        <div class="kcal-hero" onclick="switchTab('nutri')" style="cursor:pointer; margin:0;">
+                            <span id="home-kcal">0</span> <small id="home-kcal-target">/ 2700 kcal</small>
+                        </div>
+                        <div class="progress-bar-bg" style="margin: 8px 0 0;">
+                            <div id="home-kcal-bar" class="progress-bar-fill" style="width: 0%;"></div>
+                        </div>
+                        <div class="rings-pills">
+                            <span id="ring-cal-pct" class="ring-pill-badge pill-cal">0% kcal</span>
+                            <span id="ring-prot-pct" class="ring-pill-badge pill-prot">0% prot</span>
+                            <span id="ring-water-pct" class="ring-pill-badge pill-water">0% eau</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="progress-bar-bg">
-                    <div id="home-kcal-bar" class="progress-bar-fill" style="width: 0%;"></div>
-                </div>
-                <div class="macros-grid">
+
+                <!-- Macros Protéines, Glucides, Lipides -->
+                <div class="macros-grid" onclick="switchTab('nutri')" style="cursor:pointer; margin-top: 12px;">
                     <div class="macro-item">
                         <span class="macro-name">Protéines</span>
                         <strong id="home-prot">0 / 150g</strong>
@@ -96,21 +129,23 @@
                         <div class="macro-mini-bar"><div id="home-fats-bar" class="macro-mini-fill" style="width:0%"></div></div>
                     </div>
                 </div>
-            </div>
 
-            <!-- BLOC 4 : Hydratation -->
-            <div class="dash-card" id="home-block-water" data-block-id="water">
-                <div class="dash-card-header">
-                    <span class="card-title">Hydratation</span>
-                    <strong id="home-water" style="font-size:0.9rem;">0.0 / 3.0 L</strong>
-                </div>
-                <div class="progress-bar-bg" style="margin-bottom: 12px;">
-                    <div id="home-water-bar" class="progress-bar-fill water-fill" style="width: 0%;"></div>
-                </div>
-                <div class="quick-btns">
-                    <button onclick="addWater(0.25)">+ 25 cl</button>
-                    <button onclick="addWater(0.50)">+ 50 cl</button>
-                    <button onclick="addWater(-0.25)">- 25 cl</button>
+                <!-- BLOC HYDRATATION DIRECTEMENT INCORPORÉ (V4.1) -->
+                <div class="integrated-water-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px;">
+                            💧 Hydratation
+                        </span>
+                        <strong id="home-water" style="font-size: 0.88rem; color: #0284c7;">0.0 / 3.0 L</strong>
+                    </div>
+                    <div class="progress-bar-bg" style="margin-bottom: 10px;">
+                        <div id="home-water-bar" class="progress-bar-fill water-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="quick-btns">
+                        <button onclick="addWater(0.25)">+ 25 cl</button>
+                        <button onclick="addWater(0.50)">+ 50 cl</button>
+                        <button onclick="addWater(-0.25)">- 25 cl</button>
+                    </div>
                 </div>
             </div>
 
@@ -248,6 +283,24 @@
                         <div class="macro-mini-bar"><div id="nutri-fats-bar" class="macro-mini-fill" style="width:0%"></div></div>
                     </div>
                 </div>
+
+                <!-- Hydratation intégrée (V4.1) -->
+                <div class="integrated-water-section" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px;">
+                            💧 Hydratation
+                        </span>
+                        <strong id="nutri-water" style="font-size: 0.88rem; color: #0284c7;">0.0 / 3.0 L</strong>
+                    </div>
+                    <div class="progress-bar-bg" style="margin-bottom: 10px;">
+                        <div id="nutri-water-bar" class="progress-bar-fill water-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="quick-btns">
+                        <button onclick="addWater(0.25)">+ 25 cl</button>
+                        <button onclick="addWater(0.50)">+ 50 cl</button>
+                        <button onclick="addWater(-0.25)">- 25 cl</button>
+                    </div>
+                </div>
             </div>
 
             <!-- BLOC NUTRI 3 : Repas Favoris + Bouton [+ Autre aliment] (D1) -->
@@ -351,6 +404,24 @@
         <div class="dash-card highlight-card">
             <span class="card-title">Bilan de régularité</span>
             <div id="muscle-summary-grid" class="summary-grid" style="margin-top:12px;"></div>
+        </div>
+
+        <!-- Heatmap Annuelle 52 semaines Style GitHub (V4.1) -->
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="card-title">Régularité annuelle (52 semaines)</span>
+                <span id="heatmap-summary-badge" class="badge badge-up">0 séance / an</span>
+            </div>
+            <div class="heatmap-wrapper">
+                <div id="annual-heatmap" class="heatmap-grid"></div>
+            </div>
+            <div class="heatmap-legend">
+                <span>Moins</span>
+                <span class="heatmap-dot l0"></span>
+                <span class="heatmap-dot l1"></span>
+                <span class="heatmap-dot l2"></span>
+                <span>Plus</span>
+            </div>
         </div>
 
         <!-- Courbe et Historique par Machine avec suppression d'erreur (E1) -->

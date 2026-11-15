@@ -1,9 +1,10 @@
-// app.js — VERSION 6.1 (Correctifs Bugs Bloquants, Fonctions Manquantes, Chrono Actif, Poids Dynamique)
+// app.js — VERSION 4.1 (Clean V2.4 Base + Dark Mode, Anneau Nutrition/Eau, Bips Audio, Vibrations, Heatmap)
 
 let currentDayKey = 'push';
 let timerInterval = null;
 let timerEndTime = 0;
 let timeLeft = 0;
+let lastBeepSec = -1;
 
 let homeCalMonthOffset = 0;
 let nutriCalMonthOffset = 0;
@@ -13,6 +14,117 @@ let expandedExoId = null;
 let isFavEditMode = false;
 let showAllRecordsFlag = false;
 let toastTimeout = null;
+
+// =========================================================
+// RETOURS HAPTIQUES VIBRATIONS (V4.1)
+// =========================================================
+function haptic(type = 'tap') {
+    if (!('vibrate' in navigator)) return;
+    try {
+        if (type === 'tap') navigator.vibrate(8);
+        else if (type === 'success') navigator.vibrate([15, 40, 15]);
+        else if (type === 'timer') navigator.vibrate([100, 50, 100, 50, 200]);
+    } catch (e) {}
+}
+
+// =========================================================
+// SYNTHÉTISEUR AUDIO & BIPS DU CHRONOMÈTRE (V4.1)
+// =========================================================
+let audioCtx = null;
+let soundEnabled = (localStorage.getItem('vtaper_sound_enabled') !== 'false');
+
+function initAudio() {
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playBeep(freq = 440, duration = 0.1, type = 'sine') {
+    if (!soundEnabled) return;
+    try {
+        initAudio();
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch (e) {}
+}
+
+function toggleSound() {
+    initAudio();
+    soundEnabled = !soundEnabled;
+    localStorage.setItem('vtaper_sound_enabled', soundEnabled);
+    updateSoundBtn();
+    haptic('tap');
+    showToast(soundEnabled ? "🔊 Bips sonores activés" : "🔇 Bips sonores coupés");
+    if (soundEnabled) playBeep(520, 0.1);
+}
+
+function updateSoundBtn() {
+    const btn = document.getElementById('sound-toggle-btn');
+    if (btn) {
+        btn.textContent = soundEnabled ? "🔊" : "🔇";
+        btn.title = soundEnabled ? "Bips activés (Cliquer pour couper)" : "Sourdine (Cliquer pour réactiver)";
+        btn.classList.toggle('muted', !soundEnabled);
+    }
+}
+
+// =========================================================
+// MODE DARK OLED NATIF (V4.1)
+// =========================================================
+function initTheme() {
+    const saved = localStorage.getItem('vtaper_theme');
+    let theme = 'light';
+    if (saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        theme = 'dark';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+    updateThemeBtn(theme);
+}
+
+function toggleTheme() {
+    haptic('tap');
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = (current === 'dark') ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('vtaper_theme', next);
+    updateThemeBtn(next);
+    showToast(next === 'dark' ? "🌙 Mode Sombre activé" : "☀️ Mode Clair activé");
+}
+
+function updateThemeBtn(theme) {
+    const btn = document.getElementById('theme-toggle-btn');
+    if (btn) btn.textContent = (theme === 'dark') ? "🌙" : "☀️";
+}
+
+// Helper pour désérialiser sereinement un objet ou chaîne doublement encodée
+function safeObject(val) {
+    if (!val) return null;
+    if (typeof val === 'object') return val;
+    if (typeof val === 'string') {
+        try {
+            const parsed = JSON.parse(val);
+            if (typeof parsed === 'string') {
+                try { return JSON.parse(parsed); } catch (e) { return parsed; }
+            }
+            return parsed;
+        } catch (e) {
+            return null;
+        }
+    }
+    return null;
+}
 
 const DEFAULT_WORKOUT_COLORS = {
     push: "#005AA0",
@@ -25,8 +137,7 @@ const DEFAULT_WORKOUT_COLORS = {
 const HOME_BLOCK_LABELS = {
     calendar: "Calendrier du mois",
     workout: "Séance du jour",
-    nutri: "Nutrition aujourd'hui",
-    water: "Hydratation"
+    nutri: "Nutrition & Hydratation"
 };
 
 const NUTRI_BLOCK_LABELS = {
@@ -49,6 +160,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
+    initTheme();
+    updateSoundBtn();
     initV5Database();
     applyHomeLayoutOrder();
     applyNutriLayoutOrder();
@@ -115,14 +228,16 @@ function getHomeConfig() {
     const def = {
         title: "Tableau de bord",
         subtitle: "Objectif 80 kg · V-Taper & Calisthénie",
-        order: ["calendar", "workout", "nutri", "water"]
+        order: ["calendar", "workout", "nutri"]
     };
-    const saved = JSON.parse(localStorage.getItem('vtaper_home_config') || 'null');
+    const saved = safeObject(localStorage.getItem('vtaper_home_config'));
     if (!saved) return def;
+    let cleanOrder = (Array.isArray(saved.order) ? saved.order : def.order).filter(b => b !== 'water');
+    if (!cleanOrder.includes('nutri')) cleanOrder.push('nutri');
     return {
         title: saved.title || def.title,
         subtitle: saved.subtitle || def.subtitle,
-        order: (saved.order && saved.order.length === 4) ? saved.order : def.order
+        order: cleanOrder
     };
 }
 
@@ -947,6 +1062,7 @@ function getCoachRecommendation(exo, lastPerf) {
 }
 
 function stepValue(exoId, setIndex, type, delta) {
+    haptic('tap');
     const row = document.getElementById(`row_${exoId}_${setIndex}`);
     const input = row.querySelector(type === 'weight' ? '.weight-input' : '.reps-input');
     const currentVal = parseFloat(input.value) || 0;
@@ -1066,7 +1182,7 @@ function saveWorkoutSession() {
 // 5. NAVIGATION & ACCUEIL (JAUGES MONOCHROMES A3)
 // =========================================================
 function getNutriLogs() {
-    const logs = JSON.parse(localStorage.getItem('vtaper_nutri_logs') || '{}');
+    const logs = safeObject(localStorage.getItem('vtaper_nutri_logs')) || {};
     const todayKey = getTodayDateKey();
     if (!logs[todayKey]) {
         logs[todayKey] = { water: 0, kcal: 0, prot: 0, carbs: 0, fats: 0, meals: [] };
@@ -1103,6 +1219,7 @@ function updateAllViews() {
 }
 
 function switchTab(tabName) {
+    haptic('tap');
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
 
@@ -1162,6 +1279,28 @@ function updateHomeDashboard() {
 
     document.getElementById('home-water').textContent = `${(todayData.water || 0).toFixed(2)} / ${targets.water.toFixed(1)} L`;
     document.getElementById('home-water-bar').style.width = `${Math.min(((todayData.water || 0) / targets.water) * 100, 100)}%`;
+
+    // Anneaux d'Activité (Calories, Protéines, Eau) - V4.1
+    const calPct = Math.min((todayData.kcal / targets.kcal) * 100, 100);
+    const protPct = Math.min((todayData.prot / targets.prot) * 100, 100);
+    const waterTarget = targets.water || 3.0;
+    const waterPct = Math.min(((todayData.water || 0) / waterTarget) * 100, 100);
+
+    const ringCal = document.getElementById('ring-cal');
+    if (ringCal) ringCal.style.strokeDashoffset = 301.6 - (301.6 * (calPct / 100));
+
+    const ringProt = document.getElementById('ring-prot');
+    if (ringProt) ringProt.style.strokeDashoffset = 226.2 - (226.2 * (protPct / 100));
+
+    const ringWater = document.getElementById('ring-water');
+    if (ringWater) ringWater.style.strokeDashoffset = 150.8 - (150.8 * (waterPct / 100));
+
+    const elCalPct = document.getElementById('ring-cal-pct');
+    if (elCalPct) elCalPct.textContent = `${Math.round(calPct)}% kcal`;
+    const elProtPct = document.getElementById('ring-prot-pct');
+    if (elProtPct) elProtPct.textContent = `${Math.round(protPct)}% prot`;
+    const elWaterPct = document.getElementById('ring-water-pct');
+    if (elWaterPct) elWaterPct.textContent = `${Math.round(waterPct)}% eau`;
 
     if (curProg) {
         document.getElementById('home-next-workout').textContent = curProg.title;
@@ -1291,10 +1430,13 @@ function assignWorkoutToDate(dayKey) {
 // 6. NUTRITION (FAVORIS SÉCURISÉS & MINI-BARRES)
 // =========================================================
 function addWater(liters) {
-    const todayKey = getTodayDateKey();
-    const dayData = getDayNutri(todayKey);
+    haptic('tap');
+    const targetDateKey = (document.getElementById('view-nutri') && document.getElementById('view-nutri').classList.contains('active'))
+        ? selectedNutriDateKey
+        : getTodayDateKey();
+    const dayData = getDayNutri(targetDateKey);
     dayData.water = Math.max(0, (dayData.water || 0) + liters);
-    saveDayNutri(todayKey, dayData);
+    saveDayNutri(targetDateKey, dayData);
 }
 
 function getFavoriteMeals() {
@@ -1471,6 +1613,11 @@ function updateNutriView() {
     document.getElementById('nutri-prot-bar').style.width = `${Math.min((dayData.prot / targets.prot) * 100, 100)}%`;
     document.getElementById('nutri-carbs-bar').style.width = `${Math.min((dayData.carbs / targets.carbs) * 100, 100)}%`;
     document.getElementById('nutri-fats-bar').style.width = `${Math.min((dayData.fats / targets.fats) * 100, 100)}%`;
+
+    const nutriWaterEl = document.getElementById('nutri-water');
+    if (nutriWaterEl) nutriWaterEl.textContent = `${(dayData.water || 0).toFixed(2)} / ${targets.water.toFixed(1)} L`;
+    const nutriWaterBar = document.getElementById('nutri-water-bar');
+    if (nutriWaterBar) nutriWaterBar.style.width = `${Math.min(((dayData.water || 0) / targets.water) * 100, 100)}%`;
 
     const list = document.getElementById('meals-log-list');
     if (!dayData.meals || dayData.meals.length === 0) {
@@ -1649,6 +1796,46 @@ function updateProgressView() {
     }
 
     renderBodyWeightChart();
+    renderAnnualHeatmap();
+}
+
+// =========================================================
+// HEATMAP ANNUELLE 52 SEMAINES STYLE GITHUB (V4.1)
+// =========================================================
+function renderAnnualHeatmap() {
+    const grid = document.getElementById('annual-heatmap');
+    const badge = document.getElementById('heatmap-summary-badge');
+    if (!grid) return;
+
+    const cal = getWorkoutCalendar();
+    const today = new Date();
+    const totalDays = 364; // 52 semaines complètes
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - (totalDays - 1));
+
+    let html = '';
+    let yearSessionsCount = 0;
+
+    for (let i = 0; i < totalDays; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateKey = `${y}-${m}-${day}`;
+
+        const hasSession = !!cal[dateKey];
+        if (hasSession) yearSessionsCount++;
+
+        const levelClass = hasSession ? 'l2' : 'l0';
+        const tooltip = `${dateKey} : ${hasSession ? 'Séance effectuée (' + cal[dateKey] + ')' : 'Repos'}`;
+        html += `<div class="heatmap-cell ${levelClass}" title="${tooltip}" onclick="showToast('${tooltip}')"></div>`;
+    }
+
+    grid.innerHTML = html;
+    if (badge) {
+        badge.textContent = `${yearSessionsCount} séance${yearSessionsCount > 1 ? 's' : ''} / an`;
+    }
 }
 
 function selectMachineInProgress(mKey) {
@@ -1778,11 +1965,14 @@ function toggleSet(exoId, setIndex, restSeconds) {
     row.classList.toggle('done');
 
     if (row.classList.contains('done')) {
+        haptic('success');
         startTimer(restSeconds);
         if (setIndex === 0) {
             const warmupBox = document.getElementById(`warmup_${exoId}`);
             if (warmupBox) warmupBox.style.display = 'none';
         }
+    } else {
+        haptic('tap');
     }
 
     const programs = getPrograms();
@@ -1816,8 +2006,10 @@ function toggleSet(exoId, setIndex, restSeconds) {
 
 function startTimer(seconds) {
     clearInterval(timerInterval);
+    initAudio();
     timerEndTime = Date.now() + (seconds * 1000);
     timeLeft = seconds;
+    lastBeepSec = seconds;
     document.getElementById('timer-box').className = 'timer-running';
     document.getElementById('timer-wrapper').classList.add('active-timer');
     updateTimerDisplay();
@@ -1826,15 +2018,26 @@ function startTimer(seconds) {
         const remaining = Math.round((timerEndTime - Date.now()) / 1000);
         timeLeft = remaining > 0 ? remaining : 0;
         updateTimerDisplay();
+
+        // Bips sonores à 3, 2, 1
+        if (timeLeft <= 3 && timeLeft > 0 && timeLeft !== lastBeepSec) {
+            lastBeepSec = timeLeft;
+            playBeep(440, 0.08);
+            haptic('tap');
+        }
+
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             document.getElementById('timer-box').className = 'timer-done';
             document.getElementById('timer-display').textContent = "GO !";
+            playBeep(880, 0.35);
+            haptic('timer');
         }
     }, 500);
 }
 
 function adjustTimer(deltaSeconds) {
+    haptic('tap');
     if (!timerEndTime || timeLeft <= 0) {
         if (deltaSeconds > 0) startTimer(deltaSeconds);
         return;
@@ -1842,6 +2045,7 @@ function adjustTimer(deltaSeconds) {
     timerEndTime += (deltaSeconds * 1000);
     const remaining = Math.round((timerEndTime - Date.now()) / 1000);
     timeLeft = remaining > 0 ? remaining : 0;
+    lastBeepSec = timeLeft;
     updateTimerDisplay();
 }
 
@@ -1852,8 +2056,9 @@ function updateTimerDisplay() {
 }
 
 function resetTimer() {
+    haptic('tap');
     clearInterval(timerInterval);
-    timeLeft = 0; timerEndTime = 0;
+    timeLeft = 0; timerEndTime = 0; lastBeepSec = -1;
     document.getElementById('timer-box').className = 'timer-idle';
     document.getElementById('timer-wrapper').classList.remove('active-timer');
     document.getElementById('timer-display').textContent = "00:00";
@@ -1861,6 +2066,7 @@ function resetTimer() {
 
 function buildFullBackupPayload() {
     return {
+        version: "4.1",
         updatedAt: new Date().toLocaleString('fr-FR'),
         homeConfig: getHomeConfig(),
         nutriOrder: getNutriOrder(),
@@ -1871,23 +2077,86 @@ function buildFullBackupPayload() {
         machineLogs: getMachineLogs(),
         nutriLogs: getNutriLogs(),
         favMeals: getFavoriteMeals(),
-        weights: JSON.parse(localStorage.getItem('vtaper_weights') || '[]'),
-        meta: getGlobalMeta()
+        weights: safeObject(localStorage.getItem('vtaper_weights')) || [],
+        meta: getGlobalMeta(),
+        ghConfig: getGithubConfig()
     };
 }
 
 function restoreFromPayload(parsed) {
-    if (parsed.homeConfig) localStorage.setItem('vtaper_home_config', JSON.stringify(parsed.homeConfig));
-    if (parsed.nutriOrder) localStorage.setItem('vtaper_nutri_order_v6', JSON.stringify(parsed.nutriOrder));
-    if (parsed.nutriTargets) localStorage.setItem('vtaper_nutri_targets', JSON.stringify(parsed.nutriTargets));
-    if (parsed.programsV5) localStorage.setItem('vtaper_programs_v5', JSON.stringify(parsed.programsV5));
-    if (parsed.workoutCalendarV5) localStorage.setItem('vtaper_workout_calendar_v5', JSON.stringify(parsed.workoutCalendarV5));
-    if (parsed.machineLibrary) localStorage.setItem('vtaper_machine_library', JSON.stringify(parsed.machineLibrary));
-    if (parsed.machineLogs) localStorage.setItem('vtaper_machine_logs', JSON.stringify(parsed.machineLogs));
-    if (parsed.nutriLogs) localStorage.setItem('vtaper_nutri_logs', JSON.stringify(parsed.nutriLogs));
-    if (parsed.favMeals) localStorage.setItem('vtaper_fav_meals', JSON.stringify(parsed.favMeals));
-    if (parsed.weights) localStorage.setItem('vtaper_weights', JSON.stringify(parsed.weights));
-    if (parsed.meta) localStorage.setItem('vtaper_meta', JSON.stringify(parsed.meta));
+    if (typeof parsed === 'string') {
+        try { parsed = JSON.parse(parsed); } catch (e) {}
+    }
+    if (!parsed || typeof parsed !== 'object') {
+        showToast("⚠️ Fichier de sauvegarde invalide");
+        return false;
+    }
+
+    // 1. Accueil
+    const homeConfig = safeObject(parsed.homeConfig || parsed.vtaper_home_config);
+    if (homeConfig) localStorage.setItem('vtaper_home_config', JSON.stringify(homeConfig));
+
+    // 2. Nutrition Order
+    const nutriOrder = safeObject(parsed.nutriOrder || parsed.vtaper_nutri_order_v6 || parsed.vtaper_nutri_order);
+    if (nutriOrder) localStorage.setItem('vtaper_nutri_order_v6', JSON.stringify(nutriOrder));
+
+    // 3. Nutrition Targets
+    const targets = safeObject(parsed.nutriTargets || parsed.vtaper_nutri_targets || parsed.targets);
+    if (targets) localStorage.setItem('vtaper_nutri_targets', JSON.stringify(targets));
+
+    // 4. Programmes d'entraînement
+    const programs = safeObject(parsed.programsV5 || parsed.vtaper_programs_v5 || parsed.programs);
+    if (programs) localStorage.setItem('vtaper_programs_v5', JSON.stringify(programs));
+
+    // 5. Calendrier des entraînements
+    let cal = safeObject(parsed.workoutCalendarV5 || parsed.vtaper_workout_calendar_v5 || parsed.workoutCalendar);
+    if (!cal && (parsed.workoutDates || parsed.vtaper_workout_dates)) {
+        const dates = safeObject(parsed.workoutDates || parsed.vtaper_workout_dates) || [];
+        cal = {};
+        if (Array.isArray(dates)) dates.forEach(d => { cal[d] = 'push'; });
+    }
+    if (cal) localStorage.setItem('vtaper_workout_calendar_v5', JSON.stringify(cal));
+
+    // 6. Machines & Logs
+    const machineLibrary = safeObject(parsed.machineLibrary || parsed.vtaper_machine_library);
+    if (machineLibrary) localStorage.setItem('vtaper_machine_library', JSON.stringify(machineLibrary));
+
+    const machineLogs = safeObject(parsed.machineLogs || parsed.vtaper_machine_logs);
+    if (machineLogs) localStorage.setItem('vtaper_machine_logs', JSON.stringify(machineLogs));
+
+    // 7. Nutrition multi-format robuste (V1.2 à V4.1)
+    let nutriLogs = safeObject(parsed.nutriLogs || parsed.vtaper_nutri_logs || parsed.nutrition || parsed.nutritionLogs);
+    if (!nutriLogs && (parsed.daily || parsed.vtaper_daily)) {
+        const daily = safeObject(parsed.daily || parsed.vtaper_daily);
+        if (daily) nutriLogs = { [getTodayDateKey()]: daily };
+    }
+    if (nutriLogs) {
+        localStorage.setItem('vtaper_nutri_logs', JSON.stringify(nutriLogs));
+
+        // Auto-focus sur la date ayant des repas enregistrés la plus récente si aujourd'hui est vide
+        const activeDates = Object.keys(nutriLogs).filter(d => nutriLogs[d] && nutriLogs[d].kcal > 0).sort();
+        if (activeDates.length > 0) {
+            const todayKey = getTodayDateKey();
+            if (!nutriLogs[todayKey] || nutriLogs[todayKey].kcal === 0) {
+                selectedNutriDateKey = activeDates[activeDates.length - 1];
+            }
+        }
+    }
+
+    // 8. Favoris
+    const favMeals = safeObject(parsed.favMeals || parsed.vtaper_fav_meals || parsed.favorites);
+    if (favMeals) localStorage.setItem('vtaper_fav_meals', JSON.stringify(favMeals));
+
+    // 9. Pesées
+    const weights = safeObject(parsed.weights || parsed.vtaper_weights || parsed.weightLog);
+    if (weights) localStorage.setItem('vtaper_weights', JSON.stringify(weights));
+
+    // 10. Meta & GitHub
+    const meta = safeObject(parsed.meta || parsed.vtaper_meta);
+    if (meta) localStorage.setItem('vtaper_meta', JSON.stringify(meta));
+
+    const ghConfig = safeObject(parsed.ghConfig || parsed.vtaper_gh_config || parsed.githubConfig);
+    if (ghConfig) localStorage.setItem('vtaper_gh_config', JSON.stringify(ghConfig));
 
     initV5Database();
     applyHomeLayoutOrder();
@@ -1895,21 +2164,29 @@ function restoreFromPayload(parsed) {
     renderDaySelectorBar();
     loadWorkout(currentDayKey);
     updateAllViews();
+
+    const sessionCount = Object.keys(cal || {}).length;
+    const nutriDaysCount = Object.keys(nutriLogs || {}).filter(d => nutriLogs[d] && nutriLogs[d].kcal > 0).length;
+    const weightCount = Array.isArray(weights) ? weights.length : 0;
+
+    showToast(`✅ Restauration réussie : ${sessionCount} séances, ${nutriDaysCount} j nutrition, ${weightCount} pesées !`);
+    return true;
 }
 
 function exportData() {
+    haptic('tap');
     const fullBackup = buildFullBackupPayload();
     navigator.clipboard.writeText(JSON.stringify(fullBackup));
     showToast("📋 Sauvegarde JSON copiée dans le presse-papier !");
 }
 
 function importData() {
+    haptic('tap');
     const input = prompt("Colle ici ta sauvegarde JSON :");
     if (!input) return;
     try {
         const parsed = JSON.parse(input);
         restoreFromPayload(parsed);
-        showToast("✅ Base de données restaurée avec succès !");
     } catch (e) {
         showToast("⚠️ Format JSON invalide");
     }
@@ -2023,7 +2300,6 @@ async function pullFromGitHub() {
 
         restoreFromPayload(parsed);
         statusEl.textContent = `✅ Données restaurées depuis GitHub (${parsed.updatedAt || 'OK'})`;
-        showToast("✅ Toutes tes données ont été chargées depuis GitHub !");
     } catch (err) {
         statusEl.textContent = "❌ Erreur de chargement GitHub.";
         showToast("❌ Erreur chargement GitHub : " + err.message);

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#005AA0"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Card -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Glowing Accent Ring -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#accentGrad)" stroke-width="6" opacity="0.3" stroke-dasharray="16 10"/>
+
+  <!-- Stylized Dumbbell / Hex Plates -->
+  <g filter="url(#glow)">
+    <!-- Central Bar -->
+    <rect x="136" y="244" width="240" height="24" rx="12" fill="#e2e8f0"/>
+    <rect x="216" y="240" width="80" height="32" rx="6" fill="#94a3b8"/>
+
+    <!-- Left Plates -->
+    <rect x="120" y="176" width="24" height="160" rx="8" fill="url(#accentGrad)"/>
+    <rect x="96" y="196" width="20" height="120" rx="6" fill="url(#accentGrad)" opacity="0.9"/>
+    <rect x="76" y="216" width="16" height="80" rx="4" fill="#64748b"/>
+
+    <!-- Right Plates -->
+    <rect x="368" y="176" width="24" height="160" rx="8" fill="url(#accentGrad)"/>
+    <rect x="396" y="196" width="20" height="120" rx="6" fill="url(#accentGrad)" opacity="0.9"/>
+    <rect x="420" y="216" width="16" height="80" rx="4" fill="#64748b"/>
+  </g>
+
+  <!-- Monogram GT / Dynamic Wave -->
+  <path d="M 210 330 C 235 375, 277 375, 302 330" fill="none" stroke="url(#emeraldGrad)" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Little Star/Dot of Progress -->
+  <circle cx="256" cy="150" r="12" fill="#38bdf8" filter="url(#glow)"/>
+</svg>
