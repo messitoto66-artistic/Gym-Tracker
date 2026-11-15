@@ -7,7 +7,19 @@ let timeLeft = 0;
 let lastBeepSec = -1;
 
 let homeCalMonthOffset = 0;
+let homeCalWeekOffset = 0;
+let homeCalViewMode = 'month'; // 'month' ou 'week'
+
 let nutriCalMonthOffset = 0;
+let nutriCalWeekOffset = 0;
+let nutriCalViewMode = 'month'; // 'month' ou 'week'
+
+function getMondayOfDate(d) {
+    const date = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+    const day = (date.getDay() + 6) % 7; // 0 = Lundi, 6 = Dimanche
+    date.setDate(date.getDate() - day);
+    return date;
+}
 let selectedNutriDateKey = getTodayDateKey();
 let modalTargetDateKey = null;
 let expandedExoId = null;
@@ -1312,59 +1324,130 @@ function updateHomeDashboard() {
     renderHomeCalendar();
 }
 
-function changeHomeMonth(delta) {
-    homeCalMonthOffset += delta;
+function toggleHomeCalView() {
+    haptic('tap');
+    if (homeCalViewMode === 'month') {
+        homeCalViewMode = 'week';
+        homeCalWeekOffset = 0;
+    } else {
+        homeCalViewMode = 'month';
+    }
     renderHomeCalendar();
+}
+
+function changeHomeCalNav(delta) {
+    haptic('tap');
+    if (homeCalViewMode === 'week') {
+        homeCalWeekOffset += delta;
+    } else {
+        homeCalMonthOffset += delta;
+    }
+    renderHomeCalendar();
+}
+
+function changeHomeMonth(delta) {
+    changeHomeCalNav(delta);
 }
 
 function renderHomeCalendar() {
     const grid = document.getElementById('calendar-grid');
     const legend = document.getElementById('calendar-legend');
+    const titleEl = document.getElementById('cal-month-title');
+    const countEl = document.getElementById('cal-month-count');
+    const toggleBtn = document.getElementById('home-cal-toggle-btn');
     if (!grid) return;
 
-    const targetDate = new Date();
-    targetDate.setDate(1);
-    targetDate.setMonth(targetDate.getMonth() + homeCalMonthOffset);
+    if (toggleBtn) {
+        toggleBtn.textContent = (homeCalViewMode === 'week') ? "🗓️ Mois" : "📅 Semaine";
+        toggleBtn.title = (homeCalViewMode === 'week') ? "Passer en vue mois complet" : "Réduire à la semaine en cours";
+    }
 
-    const year = targetDate.getFullYear();
-    const month = targetDate.getMonth();
-    const todayKey = getTodayDateKey();
-
-    const monthNames = ["JANVIER", "FÉVRIER", "MARS", "AVRIL", "MAI", "JUIN", "JUILLET", "AOÛT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DÉCEMBRE"];
-    document.getElementById('cal-month-title').textContent = `${monthNames[month]} ${year}`;
-
+    const monthNames = ["JAN", "FÉV", "MAR", "AVR", "MAI", "JUI", "JUL", "AOÛ", "SEP", "OCT", "NOV", "DÉC"];
     const cal = getWorkoutCalendar();
     const programs = getPrograms();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const startOffset = (new Date(year, month, 1).getDay() + 6) % 7;
+    const todayKey = getTodayDateKey();
 
     let html = '';
-    let monthCount = 0;
+    let sessionsCount = 0;
 
-    for (let i = 0; i < startOffset; i++) html += `<div class="cal-day empty"></div>`;
+    if (homeCalViewMode === 'week') {
+        // Mode Semaine Réduite (Lundi au Dimanche)
+        const now = new Date();
+        const refDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+        refDate.setDate(refDate.getDate() + (homeCalWeekOffset * 7));
+        const monday = getMondayOfDate(refDate);
+        const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6, 12, 0, 0);
 
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const assignedProgKey = cal[dateKey];
-        const isToday = (dateKey === todayKey);
+        // Titre stable et propre 3 lettres + année (ex: NOV 2026)
+        const displayMonth = (monday.getMonth() === sunday.getMonth())
+            ? `${monthNames[monday.getMonth()]} ${monday.getFullYear()}`
+            : `${monthNames[sunday.getMonth()]} ${sunday.getFullYear()}`;
+        if (titleEl) titleEl.textContent = displayMonth;
 
-        const classes = ['cal-day', 'nutri-clickable'];
-        if (isToday) classes.push('today');
+        for (let i = 0; i < 7; i++) {
+            const cur = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i, 12, 0, 0);
+            const y = cur.getFullYear();
+            const m = String(cur.getMonth() + 1).padStart(2, '0');
+            const day = String(cur.getDate()).padStart(2, '0');
+            const dateKey = `${y}-${m}-${day}`;
+            const assignedProgKey = cal[dateKey];
+            const isToday = (dateKey === todayKey);
 
-        let inlineStyle = '';
-        if (assignedProgKey) {
-            monthCount++;
-            const progColor = (programs[assignedProgKey] && programs[assignedProgKey].color)
-                ? programs[assignedProgKey].color
-                : '#005AA0';
-            inlineStyle = `style="background:${progColor}; color:#fff; font-weight:800; border-color:${progColor}; box-shadow:0 2px 6px ${progColor}55;"`;
+            const classes = ['cal-day', 'nutri-clickable'];
+            if (isToday) classes.push('today');
+
+            let inlineStyle = '';
+            if (assignedProgKey) {
+                sessionsCount++;
+                const progColor = (programs[assignedProgKey] && programs[assignedProgKey].color)
+                    ? programs[assignedProgKey].color
+                    : '#005AA0';
+                inlineStyle = `style="background:${progColor}; color:#fff; font-weight:800; border-color:${progColor}; box-shadow:0 2px 6px ${progColor}55;"`;
+            }
+
+            html += `<div class="${classes.join(' ')}" ${inlineStyle} onclick="openCalModal('${dateKey}')">${cur.getDate()}</div>`;
         }
 
-        html += `<div class="${classes.join(' ')}" ${inlineStyle} onclick="openCalModal('${dateKey}')">${day}</div>`;
+        if (countEl) countEl.textContent = `${sessionsCount} séance${sessionsCount > 1 ? 's' : ''}`;
+    } else {
+        // Mode Mois Complet
+        const targetDate = new Date();
+        targetDate.setDate(1);
+        targetDate.setMonth(targetDate.getMonth() + homeCalMonthOffset);
+
+        const year = targetDate.getFullYear();
+        const month = targetDate.getMonth();
+        if (titleEl) titleEl.textContent = `${monthNames[month]} ${year}`;
+
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const startOffset = (new Date(year, month, 1).getDay() + 6) % 7;
+
+        for (let i = 0; i < startOffset; i++) html += `<div class="cal-day empty"></div>`;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const assignedProgKey = cal[dateKey];
+            const isToday = (dateKey === todayKey);
+
+            const classes = ['cal-day', 'nutri-clickable'];
+            if (isToday) classes.push('today');
+
+            let inlineStyle = '';
+            if (assignedProgKey) {
+                sessionsCount++;
+                const progColor = (programs[assignedProgKey] && programs[assignedProgKey].color)
+                    ? programs[assignedProgKey].color
+                    : '#005AA0';
+                inlineStyle = `style="background:${progColor}; color:#fff; font-weight:800; border-color:${progColor}; box-shadow:0 2px 6px ${progColor}55;"`;
+            }
+
+            html += `<div class="${classes.join(' ')}" ${inlineStyle} onclick="openCalModal('${dateKey}')">${day}</div>`;
+        }
+
+        if (countEl) countEl.textContent = `${sessionsCount} séance${sessionsCount > 1 ? 's' : ''}`;
     }
 
     grid.innerHTML = html;
-    document.getElementById('cal-month-count').textContent = `${monthCount} séance${monthCount > 1 ? 's' : ''}`;
 
     if (legend) {
         legend.innerHTML = Object.values(programs).map(p => `
@@ -1544,9 +1627,29 @@ function resetNutriDay() {
     showToast("🗑️ Repas du jour réinitialisés");
 }
 
-function changeNutriMonth(delta) {
-    nutriCalMonthOffset += delta;
+function toggleNutriCalView() {
+    haptic('tap');
+    if (nutriCalViewMode === 'month') {
+        nutriCalViewMode = 'week';
+        nutriCalWeekOffset = 0;
+    } else {
+        nutriCalViewMode = 'month';
+    }
     renderNutriCalendar();
+}
+
+function changeNutriCalNav(delta) {
+    haptic('tap');
+    if (nutriCalViewMode === 'week') {
+        nutriCalWeekOffset += delta;
+    } else {
+        nutriCalMonthOffset += delta;
+    }
+    renderNutriCalendar();
+}
+
+function changeNutriMonth(delta) {
+    changeNutriCalNav(delta);
 }
 
 function selectNutriDate(dateKey) {
@@ -1556,40 +1659,83 @@ function selectNutriDate(dateKey) {
 
 function renderNutriCalendar() {
     const grid = document.getElementById('nutri-calendar-grid');
+    const titleEl = document.getElementById('nutri-cal-title');
+    const toggleBtn = document.getElementById('nutri-cal-toggle-btn');
     if (!grid) return;
 
-    const targets = getNutriTargets();
-    document.getElementById('nutri-cal-legend-ok').textContent = `🟢 ≥${targets.kcal}`;
-    document.getElementById('nutri-cal-legend-low').textContent = `🟠 <${targets.kcal}`;
-
-    const targetDate = new Date();
-    targetDate.setDate(1);
-    targetDate.setMonth(targetDate.getMonth() + nutriCalMonthOffset);
-
-    const year = targetDate.getFullYear();
-    const month = targetDate.getMonth();
-    const monthNames = ["JANVIER", "FÉVRIER", "MARS", "AVRIL", "MAI", "JUIN", "JUILLET", "AOÛT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DÉCEMBRE"];
-    document.getElementById('nutri-cal-title').textContent = `${monthNames[month]} ${year}`;
-
-    const logs = getNutriLogs();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const startOffset = (new Date(year, month, 1).getDay() + 6) % 7;
-
-    let html = '';
-    for (let i = 0; i < startOffset; i++) html += `<div class="cal-day empty"></div>`;
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayLog = logs[dateKey];
-        const kcal = dayLog ? dayLog.kcal : 0;
-
-        const classes = ['cal-day', 'nutri-clickable'];
-        if (dateKey === selectedNutriDateKey) classes.push('nutri-selected');
-        if (kcal >= targets.kcal) classes.push('kcal-ok');
-        else if (kcal > 0) classes.push('kcal-low');
-
-        html += `<div class="${classes.join(' ')}" onclick="selectNutriDate('${dateKey}')">${day}</div>`;
+    if (toggleBtn) {
+        toggleBtn.textContent = (nutriCalViewMode === 'week') ? "🗓️ Mois" : "📅 Semaine";
+        toggleBtn.title = (nutriCalViewMode === 'week') ? "Passer en vue mois complet" : "Réduire à la semaine en cours";
     }
+
+    const targets = getNutriTargets();
+    const okLegend = document.getElementById('nutri-cal-legend-ok');
+    const lowLegend = document.getElementById('nutri-cal-legend-low');
+    if (okLegend) okLegend.textContent = `🟢 ≥${targets.kcal}`;
+    if (lowLegend) lowLegend.textContent = `🟠 <${targets.kcal}`;
+
+    const monthNames = ["JAN", "FÉV", "MAR", "AVR", "MAI", "JUI", "JUL", "AOÛ", "SEP", "OCT", "NOV", "DÉC"];
+    const logs = getNutriLogs();
+    let html = '';
+
+    if (nutriCalViewMode === 'week') {
+        // Mode Semaine Réduite Nutrition (Lundi au Dimanche)
+        const now = new Date();
+        const refDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+        refDate.setDate(refDate.getDate() + (nutriCalWeekOffset * 7));
+        const monday = getMondayOfDate(refDate);
+        const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6, 12, 0, 0);
+
+        const displayMonth = (monday.getMonth() === sunday.getMonth())
+            ? `${monthNames[monday.getMonth()]} ${monday.getFullYear()}`
+            : `${monthNames[sunday.getMonth()]} ${sunday.getFullYear()}`;
+        if (titleEl) titleEl.textContent = displayMonth;
+
+        for (let i = 0; i < 7; i++) {
+            const cur = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i, 12, 0, 0);
+            const y = cur.getFullYear();
+            const m = String(cur.getMonth() + 1).padStart(2, '0');
+            const day = String(cur.getDate()).padStart(2, '0');
+            const dateKey = `${y}-${m}-${day}`;
+            const dayLog = logs[dateKey];
+            const kcal = dayLog ? dayLog.kcal : 0;
+
+            const classes = ['cal-day', 'nutri-clickable'];
+            if (dateKey === selectedNutriDateKey) classes.push('nutri-selected');
+            if (kcal >= targets.kcal) classes.push('kcal-ok');
+            else if (kcal > 0) classes.push('kcal-low');
+
+            html += `<div class="${classes.join(' ')}" onclick="selectNutriDate('${dateKey}')">${cur.getDate()}</div>`;
+        }
+    } else {
+        // Mode Mois Complet
+        const targetDate = new Date();
+        targetDate.setDate(1);
+        targetDate.setMonth(targetDate.getMonth() + nutriCalMonthOffset);
+
+        const year = targetDate.getFullYear();
+        const month = targetDate.getMonth();
+        if (titleEl) titleEl.textContent = `${monthNames[month]} ${year}`;
+
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const startOffset = (new Date(year, month, 1).getDay() + 6) % 7;
+
+        for (let i = 0; i < startOffset; i++) html += `<div class="cal-day empty"></div>`;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayLog = logs[dateKey];
+            const kcal = dayLog ? dayLog.kcal : 0;
+
+            const classes = ['cal-day', 'nutri-clickable'];
+            if (dateKey === selectedNutriDateKey) classes.push('nutri-selected');
+            if (kcal >= targets.kcal) classes.push('kcal-ok');
+            else if (kcal > 0) classes.push('kcal-low');
+
+            html += `<div class="${classes.join(' ')}" onclick="selectNutriDate('${dateKey}')">${day}</div>`;
+        }
+    }
+
     grid.innerHTML = html;
 }
 
@@ -1801,7 +1947,31 @@ function updateProgressView() {
 }
 
 // =========================================================
-// CARTE FUT MUSCULATION DYNAMIQUE & ÉVOLUTIVE (V4.1)
+// CALCUL EXACT DES SÉANCES ANNUELLES (365 JOURS GLISSANTS)
+// =========================================================
+function getAnnualSessionsCount(cal) {
+    if (!cal || typeof cal !== 'object') return 0;
+
+    const now = new Date();
+    // Fenêtre des 365 jours qui précèdent aujourd'hui (incluant aujourd'hui)
+    const past365 = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 365, 0, 0, 0, 0);
+    const start365Key = `${past365.getFullYear()}-${String(past365.getMonth() + 1).padStart(2, '0')}-${String(past365.getDate()).padStart(2, '0')}`;
+
+    let count = 0;
+    Object.keys(cal).forEach(dateStr => {
+        if (!cal[dateStr]) return;
+        // Toute séance enregistrée dans la fenêtre des 365 jours précédant aujourd'hui (inclus)
+        // OU séance planifiée/fictive enregistrée dans le mois ou l'année en cours
+        if (dateStr >= start365Key) {
+            count++;
+        }
+    });
+
+    return count;
+}
+
+// =========================================================
+// CARTE FUT MUSCULATION DYNAMIQUE & ÉVOLUTIVE (V4.2)
 // =========================================================
 function renderFUTCard() {
     const card = document.getElementById('fut-card');
@@ -1812,21 +1982,8 @@ function renderFUTCard() {
     const meta = getGlobalMeta();
     const bw = parseFloat(meta.weight) || 75.0;
 
-    // 1. Calcul de la régularité annuelle
-    const today = new Date();
-    const totalDays = 364;
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - (totalDays - 1));
-    let annualSessions = 0;
-    for (let i = 0; i < totalDays; i++) {
-        const d = new Date(startDate);
-        d.setDate(startDate.getDate() + i);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const dateKey = `${y}-${m}-${day}`;
-        if (cal && cal[dateKey]) annualSessions++;
-    }
+    // 1. Calcul précis de la régularité annuelle
+    const annualSessions = getAnnualSessionsCount(cal);
 
     // 2. Extraction des 1RM max par groupe musculaire
     const maxOneRM = { pec: 0, dos: 0, epa: 0, bra: 0, leg: 0, abs: 0 };
@@ -1883,19 +2040,19 @@ function renderFUTCard() {
     let tierName = "OR RARE · ATHLÈTE";
     let pos = "ATH";
 
-    if (annualSessions >= 110 || ovr >= 92) {
+    if (annualSessions >= 100 || ovr >= 92) {
         tierClass = "fut-icon";
         tierName = "ICÔNE PRIME · LÉGENDE";
         pos = "LEG";
-    } else if (annualSessions >= 65 || ovr >= 87) {
+    } else if (annualSessions >= 50 || ovr >= 85) {
         tierClass = "fut-totw";
         tierName = "TOTW SPECIAL · MACHINE";
         pos = "MACH";
-    } else if (annualSessions >= 25 || ovr >= 78) {
+    } else if (annualSessions >= 20 || ovr >= 78) {
         tierClass = "fut-gold";
         tierName = "OR RARE · ATHLÈTE";
         pos = "ATH";
-    } else if (annualSessions >= 10 || ovr >= 70) {
+    } else if (annualSessions >= 8 || ovr >= 70) {
         tierClass = "fut-silver";
         tierName = "ARGENT · RÉGULIER";
         pos = "REG";
@@ -1933,7 +2090,7 @@ function renderFUTCard() {
 }
 
 // =========================================================
-// HEATMAP ANNUELLE 52 SEMAINES STYLE GITHUB (V4.1)
+// HEATMAP ANNUELLE 52 SEMAINES STYLE GITHUB (V4.2)
 // =========================================================
 function renderAnnualHeatmap() {
     const grid = document.getElementById('annual-heatmap');
@@ -1941,33 +2098,43 @@ function renderAnnualHeatmap() {
     if (!grid) return;
 
     const cal = getWorkoutCalendar();
-    const today = new Date();
-    const totalDays = 364; // 52 semaines complètes
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - (totalDays - 1));
+    const now = new Date();
+    
+    // Aligner la fin sur le dimanche de la semaine en cours pour afficher 52 colonnes complètes (364 jours)
+    const endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+    const dayOfWeek = (endDay.getDay() + 6) % 7; // 0 = Lundi, 6 = Dimanche
+    const daysToSunday = 6 - dayOfWeek;
+    endDay.setDate(endDay.getDate() + daysToSunday);
+
+    const startDay = new Date(endDay);
+    startDay.setDate(endDay.getDate() - (364 - 1));
 
     let html = '';
-    let yearSessionsCount = 0;
+    const todayKey = getTodayDateKey();
 
-    for (let i = 0; i < totalDays; i++) {
-        const d = new Date(startDate);
-        d.setDate(startDate.getDate() + i);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
+    for (let i = 0; i < 364; i++) {
+        const cur = new Date(startDay.getFullYear(), startDay.getMonth(), startDay.getDate() + i, 12, 0, 0);
+        const y = cur.getFullYear();
+        const m = String(cur.getMonth() + 1).padStart(2, '0');
+        const day = String(cur.getDate()).padStart(2, '0');
         const dateKey = `${y}-${m}-${day}`;
 
         const hasSession = !!cal[dateKey];
-        if (hasSession) yearSessionsCount++;
+        const isToday = (dateKey === todayKey);
+        const isFuture = (cur > now);
 
-        const levelClass = hasSession ? 'l2' : 'l0';
-        const tooltip = `${dateKey} : ${hasSession ? 'Séance effectuée (' + cal[dateKey] + ')' : 'Repos'}`;
+        let levelClass = hasSession ? 'l2' : 'l0';
+        let tooltip = `${dateKey} : ${hasSession ? 'Séance effectuée (' + cal[dateKey] + ')' : (isFuture ? 'À venir' : 'Repos')}`;
+        if (isToday) tooltip += ' [Aujourd\'hui]';
+
         html += `<div class="heatmap-cell ${levelClass}" title="${tooltip}" onclick="showToast('${tooltip}')"></div>`;
     }
 
     grid.innerHTML = html;
+    
+    const annualCount = getAnnualSessionsCount(cal);
     if (badge) {
-        badge.textContent = `${yearSessionsCount} séance${yearSessionsCount > 1 ? 's' : ''} / an`;
+        badge.textContent = `${annualCount} séance${annualCount > 1 ? 's' : ''} / an`;
     }
 }
 
@@ -2199,7 +2366,7 @@ function resetTimer() {
 
 function buildFullBackupPayload() {
     return {
-        version: "4.1",
+        version: "4.5",
         updatedAt: new Date().toLocaleString('fr-FR'),
         homeConfig: getHomeConfig(),
         nutriOrder: getNutriOrder(),

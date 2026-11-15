@@ -231,7 +231,56 @@ body {
 /* =========================================================
    CALENDRIERS MENSUELS
 ========================================================= */
-.cal-nav { display: flex; align-items: center; gap: 8px; }
+.cal-nav { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.cal-month-title {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: var(--text-main);
+    white-space: nowrap;
+    text-align: center;
+    width: 78px;
+    letter-spacing: -0.2px;
+    user-select: none;
+    flex-shrink: 0;
+}
+.cal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.cal-view-toggle-btn {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: 0.70rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    line-height: 1.2;
+    flex-shrink: 0;
+}
+.cal-view-toggle-btn:hover,
+.cal-view-toggle-btn:active {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
+}
+.nutri-cal-legend-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.70rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
 .cal-nav-btn {
     background: var(--bg-elevated);
     border: none;

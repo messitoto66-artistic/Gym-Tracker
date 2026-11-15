@@ -46,11 +46,14 @@
             <div class="dash-card" id="home-block-calendar" data-block-id="calendar">
                 <div class="dash-card-header">
                     <div class="cal-nav">
-                        <button class="cal-nav-btn" onclick="changeHomeMonth(-1)">‹</button>
-                        <span class="card-title" id="cal-month-title">Mois</span>
-                        <button class="cal-nav-btn" onclick="changeHomeMonth(1)">›</button>
+                        <button class="cal-nav-btn" onclick="changeHomeCalNav(-1)">‹</button>
+                        <span class="cal-month-title" id="cal-month-title">NOV 2026</span>
+                        <button class="cal-nav-btn" onclick="changeHomeCalNav(1)">›</button>
                     </div>
-                    <span class="badge badge-up" id="cal-month-count">0 séance</span>
+                    <div class="cal-header-actions">
+                        <button class="cal-view-toggle-btn" id="home-cal-toggle-btn" onclick="toggleHomeCalView()" title="Réduire à la semaine en cours">📅 Semaine</button>
+                        <span class="badge badge-up" id="cal-month-count">0 séance</span>
+                    </div>
                 </div>
                 <div class="cal-weekdays">
                     <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
@@ -239,13 +242,16 @@
             <div class="dash-card" id="nutri-block-calendar">
                 <div class="dash-card-header">
                     <div class="cal-nav">
-                        <button class="cal-nav-btn" onclick="changeNutriMonth(-1)">‹</button>
-                        <span class="card-title" id="nutri-cal-title">Mois</span>
-                        <button class="cal-nav-btn" onclick="changeNutriMonth(1)">›</button>
+                        <button class="cal-nav-btn" onclick="changeNutriCalNav(-1)">‹</button>
+                        <span class="cal-month-title" id="nutri-cal-title">NOV 2026</span>
+                        <button class="cal-nav-btn" onclick="changeNutriCalNav(1)">›</button>
                     </div>
-                    <div style="display:flex; gap:8px; font-size:0.72rem; font-weight:700;">
-                        <span style="color:#047857;" id="nutri-cal-legend-ok">● ≥2700</span>
-                        <span style="color:#d97706;" id="nutri-cal-legend-low">● &lt;2700</span>
+                    <div class="cal-header-actions">
+                        <button class="cal-view-toggle-btn" id="nutri-cal-toggle-btn" onclick="toggleNutriCalView()" title="Réduire à la semaine en cours">📅 Semaine</button>
+                        <div class="nutri-cal-legend-pills">
+                            <span style="color:#047857;" id="nutri-cal-legend-ok">● ≥2700</span>
+                            <span style="color:#d97706;" id="nutri-cal-legend-low">● &lt;2700</span>
+                        </div>
                     </div>
                 </div>
                 <div class="cal-weekdays">

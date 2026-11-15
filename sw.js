@@ -1,5 +1,5 @@
-// sw.js — Service Worker pour exécution 100% Hors-Ligne sur iPhone (V4.1)
-const CACHE_NAME = 'Gym-Tracker-v4.1';
+// sw.js — Service Worker pour exécution 100% Hors-Ligne sur iPhone (V4.5)
+const CACHE_NAME = 'Gym-Tracker-v4.5';
 const ASSETS = [
     './',
     './index.html',
