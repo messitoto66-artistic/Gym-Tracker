@@ -849,3 +849,242 @@ body {
 .heatmap-dot.l0 { background: var(--bg-elevated); }
 .heatmap-dot.l1 { background: #60a5fa; }
 .heatmap-dot.l2 { background: var(--accent); }
+
+/* =========================================================
+   CARTE FUT MUSCULATION (V4.1 - INDÉPENDANTE DU THÈME)
+========================================================= */
+.fut-card-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 6px 0 16px;
+    perspective: 1000px;
+}
+
+.fut-card {
+    position: relative;
+    width: 280px;
+    padding: 20px 18px 24px;
+    border-radius: 20px 20px 42px 42px;
+    color: #ffffff !important;
+    text-align: center;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    user-select: none;
+}
+
+.fut-card:hover {
+    transform: translateY(-3px) scale(1.01);
+}
+
+.fut-card-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* 1. TIER BRONZE (< 10 séances ou OVR < 70) */
+.fut-card.fut-bronze {
+    background: linear-gradient(145deg, #3d2314 0%, #6e4024 45%, #2a160c 100%) !important;
+    border: 2px solid #b87333 !important;
+    box-shadow: 0 10px 28px rgba(184, 115, 51, 0.35) !important;
+}
+.fut-card.fut-bronze .fut-ovr,
+.fut-card.fut-bronze .fut-val,
+.fut-card.fut-bronze .fut-tier-badge {
+    color: #ffd8be !important;
+}
+
+/* 2. TIER ARGENT (10 à 24 séances ou OVR 70-77) */
+.fut-card.fut-silver {
+    background: linear-gradient(145deg, #1e293b 0%, #475569 45%, #0f172a 100%) !important;
+    border: 2px solid #cbd5e1 !important;
+    box-shadow: 0 10px 28px rgba(203, 213, 225, 0.35) !important;
+}
+.fut-card.fut-silver .fut-ovr,
+.fut-card.fut-silver .fut-val,
+.fut-card.fut-silver .fut-tier-badge {
+    color: #f8fafc !important;
+}
+
+/* 3. TIER OR RARE (25 à 64 séances ou OVR 78-86) */
+.fut-card.fut-gold {
+    background: linear-gradient(145deg, #422d05 0%, #9a6d12 45%, #ffd700 75%, #352302 100%) !important;
+    border: 2px solid #fef08a !important;
+    box-shadow: 0 12px 34px rgba(234, 179, 8, 0.45) !important;
+}
+.fut-card.fut-gold .fut-ovr,
+.fut-card.fut-gold .fut-val,
+.fut-card.fut-gold .fut-tier-badge {
+    color: #fef9c3 !important;
+}
+
+/* 4. TIER TOTW / ONYX & NÉON BLEU (65 à 109 séances ou OVR 87-91) */
+.fut-card.fut-totw {
+    background: linear-gradient(145deg, #020617 0%, #0b1329 45%, #030712 100%) !important;
+    border: 2px solid #38bdf8 !important;
+    box-shadow: 0 12px 36px rgba(56, 189, 248, 0.5), inset 0 0 18px rgba(56, 189, 248, 0.15) !important;
+}
+.fut-card.fut-totw .fut-ovr,
+.fut-card.fut-totw .fut-val,
+.fut-card.fut-totw .fut-tier-badge {
+    color: #38bdf8 !important;
+}
+
+/* 5. TIER ICÔNE PRIME (110+ séances ou OVR 92+) */
+.fut-card.fut-icon {
+    background: linear-gradient(145deg, #fefce8 0%, #ffffff 40%, #fef08a 80%, #fefce8 100%) !important;
+    border: 2px solid #fbbf24 !important;
+    box-shadow: 0 14px 40px rgba(251, 191, 36, 0.6) !important;
+    color: #0f172a !important;
+}
+.fut-card.fut-icon .fut-player-name {
+    color: #1e1b4b !important;
+}
+.fut-card.fut-icon .fut-ovr,
+.fut-card.fut-icon .fut-val,
+.fut-card.fut-icon .fut-tier-badge {
+    color: #b45309 !important;
+}
+.fut-card.fut-icon .fut-lbl,
+.fut-card.fut-icon .fut-pos,
+.fut-card.fut-icon .fut-footer {
+    color: #475569 !important;
+}
+.fut-card.fut-icon .fut-avatar-svg {
+    color: #b45309 !important;
+}
+
+/* Structure interne */
+.fut-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: relative;
+    z-index: 2;
+}
+
+.fut-rating-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+}
+.fut-ovr {
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1px;
+}
+.fut-pos {
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+.fut-crest {
+    font-size: 1rem;
+    margin-top: 2px;
+}
+
+.fut-avatar-zone {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.fut-silhouette {
+    width: 90px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fut-avatar-svg {
+    width: 100%;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.fut-player-name {
+    font-size: 1.15rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin-top: 6px;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 2;
+    color: #ffffff;
+}
+
+.fut-tier-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-top: 2px;
+    position: relative;
+    z-index: 2;
+}
+
+.fut-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 10px 10px 12px;
+    position: relative;
+    z-index: 2;
+}
+
+.fut-stats-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+}
+.fut-stat-col {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.fut-stat-sep {
+    width: 1px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+}
+.fut-stat-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 0.95rem;
+}
+.fut-val {
+    font-weight: 900;
+    font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+    min-width: 24px;
+    text-align: right;
+}
+.fut-lbl {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.8;
+}
+
+.fut-footer {
+    margin-top: 14px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    opacity: 0.75;
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 2;
+}

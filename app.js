@@ -1797,6 +1797,139 @@ function updateProgressView() {
 
     renderBodyWeightChart();
     renderAnnualHeatmap();
+    renderFUTCard();
+}
+
+// =========================================================
+// CARTE FUT MUSCULATION DYNAMIQUE & ÉVOLUTIVE (V4.1)
+// =========================================================
+function renderFUTCard() {
+    const card = document.getElementById('fut-card');
+    if (!card) return;
+
+    const machineLogs = getMachineLogs();
+    const cal = getWorkoutCalendar();
+    const meta = getGlobalMeta();
+    const bw = parseFloat(meta.weight) || 75.0;
+
+    // 1. Calcul de la régularité annuelle
+    const today = new Date();
+    const totalDays = 364;
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - (totalDays - 1));
+    let annualSessions = 0;
+    for (let i = 0; i < totalDays; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateKey = `${y}-${m}-${day}`;
+        if (cal && cal[dateKey]) annualSessions++;
+    }
+
+    // 2. Extraction des 1RM max par groupe musculaire
+    const maxOneRM = { pec: 0, dos: 0, epa: 0, bra: 0, leg: 0, abs: 0 };
+
+    Object.keys(machineLogs).forEach(key => {
+        const logs = machineLogs[key];
+        if (!Array.isArray(logs) || logs.length === 0) return;
+        let peak1RM = 0;
+        logs.forEach(l => {
+            const w = parseFloat(l.weight) || 0;
+            const r = parseFloat(l.reps) || 0;
+            const rm = l.oneRM || (w * (1 + r / 30));
+            if (rm > peak1RM) peak1RM = rm;
+        });
+
+        const k = key.toLowerCase();
+        if (k.includes('inclin') || k.includes('pec') || k.includes('dips') || k.includes('ecarte') || k.includes('couch') || k.includes('chest')) {
+            maxOneRM.pec = Math.max(maxOneRM.pec, peak1RM);
+        } else if (k.includes('traction') || k.includes('tirage') || k.includes('rowing') || k.includes('bucheron') || k.includes('dos') || k.includes('lat') || k.includes('pull')) {
+            maxOneRM.dos = Math.max(maxOneRM.dos, peak1RM);
+        } else if (k.includes('milit') || k.includes('epaule') || k.includes('laterale') || k.includes('shoulder') || k.includes('delto') || k.includes('face')) {
+            maxOneRM.epa = Math.max(maxOneRM.epa, peak1RM);
+        } else if (k.includes('triceps') || k.includes('biceps') || k.includes('curl') || k.includes('bras') || k.includes('front') || k.includes('arm')) {
+            maxOneRM.bra = Math.max(maxOneRM.bra, peak1RM);
+        } else if (k.includes('presse') || k.includes('squat') || k.includes('cuisse') || k.includes('leg') || k.includes('ischio') || k.includes('fente') || k.includes('mollet')) {
+            maxOneRM.leg = Math.max(maxOneRM.leg, peak1RM);
+        } else if (k.includes('abdo') || k.includes('gainage') || k.includes('crunch') || k.includes('core') || k.includes('releve')) {
+            maxOneRM.abs = Math.max(maxOneRM.abs, peak1RM);
+        }
+    });
+
+    // 3. Calcul de stat FUT réaliste (55 à 99)
+    function calcStat(peak, expectedRatio, baseline = 70) {
+        if (!peak || peak <= 0) {
+            return Math.min(80, baseline + Math.min(8, Math.floor(annualSessions / 6)));
+        }
+        const ratio = peak / bw;
+        const score = 70 + Math.round((ratio / expectedRatio) * 16);
+        return Math.min(99, Math.max(55, score));
+    }
+
+    const pecScore = calcStat(maxOneRM.pec, 1.15, 74);
+    const dosScore = calcStat(maxOneRM.dos, 1.25, 75);
+    const epaScore = calcStat(maxOneRM.epa, 0.65, 73);
+    const braScore = calcStat(maxOneRM.bra, 0.45, 72);
+    const legScore = calcStat(maxOneRM.leg, 2.20, 72);
+    const absBonus = Math.min(20, Math.floor(annualSessions / 3));
+    const absScore = maxOneRM.abs > 0 ? calcStat(maxOneRM.abs, 0.6, 75) : Math.min(96, 72 + absBonus);
+
+    const ovr = Math.round((pecScore + dosScore + epaScore + braScore + legScore + absScore) / 6);
+
+    // 4. Évolution visuelle du Tier FUT selon régularité & OVR
+    let tierClass = "fut-gold";
+    let tierName = "OR RARE · ATHLÈTE";
+    let pos = "ATH";
+
+    if (annualSessions >= 110 || ovr >= 92) {
+        tierClass = "fut-icon";
+        tierName = "ICÔNE PRIME · LÉGENDE";
+        pos = "LEG";
+    } else if (annualSessions >= 65 || ovr >= 87) {
+        tierClass = "fut-totw";
+        tierName = "TOTW SPECIAL · MACHINE";
+        pos = "MACH";
+    } else if (annualSessions >= 25 || ovr >= 78) {
+        tierClass = "fut-gold";
+        tierName = "OR RARE · ATHLÈTE";
+        pos = "ATH";
+    } else if (annualSessions >= 10 || ovr >= 70) {
+        tierClass = "fut-silver";
+        tierName = "ARGENT · RÉGULIER";
+        pos = "REG";
+    } else {
+        tierClass = "fut-bronze";
+        tierName = "BRONZE · DÉBUTANT";
+        pos = "STAR";
+    }
+
+    card.className = `fut-card ${tierClass}`;
+    const elOvr = document.getElementById('fut-ovr');
+    if (elOvr) elOvr.textContent = ovr;
+    const elPos = document.getElementById('fut-pos');
+    if (elPos) elPos.textContent = pos;
+    const elName = document.getElementById('fut-name');
+    if (elName) elName.textContent = "GAËL";
+    const elTier = document.getElementById('fut-tier-title');
+    if (elTier) elTier.textContent = tierName;
+
+    const elPec = document.getElementById('fut-pec');
+    if (elPec) elPec.textContent = pecScore;
+    const elDos = document.getElementById('fut-dos');
+    if (elDos) elDos.textContent = dosScore;
+    const elEpa = document.getElementById('fut-epa');
+    if (elEpa) elEpa.textContent = epaScore;
+    const elBra = document.getElementById('fut-bra');
+    if (elBra) elBra.textContent = braScore;
+    const elLeg = document.getElementById('fut-leg');
+    if (elLeg) elLeg.textContent = legScore;
+    const elAbs = document.getElementById('fut-abs');
+    if (elAbs) elAbs.textContent = absScore;
+
+    const elSub = document.getElementById('fut-sub-info');
+    if (elSub) elSub.textContent = `${annualSessions} séance${annualSessions > 1 ? 's' : ''} cette année · OVR ${ovr}`;
 }
 
 // =========================================================
@@ -2078,8 +2211,7 @@ function buildFullBackupPayload() {
         nutriLogs: getNutriLogs(),
         favMeals: getFavoriteMeals(),
         weights: safeObject(localStorage.getItem('vtaper_weights')) || [],
-        meta: getGlobalMeta(),
-        ghConfig: getGithubConfig()
+        meta: getGlobalMeta()
     };
 }
 
@@ -2151,12 +2283,9 @@ function restoreFromPayload(parsed) {
     const weights = safeObject(parsed.weights || parsed.vtaper_weights || parsed.weightLog);
     if (weights) localStorage.setItem('vtaper_weights', JSON.stringify(weights));
 
-    // 10. Meta & GitHub
+    // 10. Meta
     const meta = safeObject(parsed.meta || parsed.vtaper_meta);
     if (meta) localStorage.setItem('vtaper_meta', JSON.stringify(meta));
-
-    const ghConfig = safeObject(parsed.ghConfig || parsed.vtaper_gh_config || parsed.githubConfig);
-    if (ghConfig) localStorage.setItem('vtaper_gh_config', JSON.stringify(ghConfig));
 
     initV5Database();
     applyHomeLayoutOrder();
@@ -2193,47 +2322,76 @@ function importData() {
 }
 
 function getGithubConfig() {
-    return JSON.parse(localStorage.getItem('vtaper_gh_config') || '{"owner":"","repo":"","token":""}');
+    return safeObject(localStorage.getItem('vtaper_gh_config')) || { owner: "", repo: "", token: "" };
 }
 
-function toggleGithubConfigDrawer() {
+function toggleBackupDrawer() {
+    haptic('tap');
     const drawer = document.getElementById('backup-main-drawer');
     if (!drawer) return;
     const cfg = getGithubConfig();
-    document.getElementById('gh-owner').value = cfg.owner || '';
-    document.getElementById('gh-repo').value = cfg.repo || '';
-    document.getElementById('gh-token').value = cfg.token || '';
+    const ownerEl = document.getElementById('gh-owner');
+    const repoEl = document.getElementById('gh-repo');
+    const tokenEl = document.getElementById('gh-token');
+    if (ownerEl) ownerEl.value = cfg.owner || '';
+    if (repoEl) repoEl.value = cfg.repo || '';
+    if (tokenEl) tokenEl.value = cfg.token || '';
     drawer.classList.toggle('open');
 }
 
+function toggleGithubConfigDrawer() {
+    toggleBackupDrawer();
+}
+
 function saveGithubConfig() {
+    haptic('success');
+    const ownerEl = document.getElementById('gh-owner');
+    const repoEl = document.getElementById('gh-repo');
+    const tokenEl = document.getElementById('gh-token');
     const cfg = {
-        owner: document.getElementById('gh-owner').value.trim(),
-        repo: document.getElementById('gh-repo').value.trim(),
-        token: document.getElementById('gh-token').value.trim()
+        owner: (ownerEl ? ownerEl.value : '').trim(),
+        repo: (repoEl ? repoEl.value : '').trim(),
+        token: (tokenEl ? tokenEl.value : '').trim()
     };
     localStorage.setItem('vtaper_gh_config', JSON.stringify(cfg));
-    document.getElementById('backup-main-drawer').classList.remove('open');
+    const drawer = document.getElementById('backup-main-drawer');
+    if (drawer) drawer.classList.remove('open');
     showToast("✅ Paramètres GitHub enregistrés");
 }
 
 function utf8ToBase64(str) {
-    return btoa(unescape(encodeURIComponent(str)));
+    try {
+        return btoa(unescape(encodeURIComponent(str)));
+    } catch (e) {
+        const bytes = new TextEncoder().encode(str);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+    }
 }
 
 function base64ToUtf8(b64) {
-    return decodeURIComponent(escape(atob(b64)));
+    const cleanB64 = (b64 || '').replace(/\s/g, '');
+    try {
+        return decodeURIComponent(escape(atob(cleanB64)));
+    } catch (e) {
+        const binary = atob(cleanB64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return new TextDecoder().decode(bytes);
+    }
 }
 
 async function syncToGitHub() {
+    haptic('tap');
     const cfg = getGithubConfig();
     if (!cfg.owner || !cfg.repo || !cfg.token) {
-        toggleGithubConfigDrawer();
+        toggleBackupDrawer();
         return showToast("⚠️ Configure d'abord tes accès GitHub");
     }
 
     const statusEl = document.getElementById('github-sync-status');
-    statusEl.textContent = "⏳ Connexion à GitHub en cours...";
+    if (statusEl) statusEl.textContent = "⏳ Connexion à GitHub en cours...";
 
     const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup.json`;
     const headers = {
@@ -2249,7 +2407,9 @@ async function syncToGitHub() {
             existingSha = fileData.sha;
         }
 
-        const payloadStr = JSON.stringify(buildFullBackupPayload(), null, 2);
+        const payload = buildFullBackupPayload();
+        delete payload.ghConfig; // Sécurité absolue : jamais de token dans le commit
+        const payloadStr = JSON.stringify(payload, null, 2);
         const bodyObj = {
             message: `📲 Sync Gym-Tracker (${new Date().toLocaleDateString('fr-FR')})`,
             content: utf8ToBase64(payloadStr)
@@ -2262,27 +2422,32 @@ async function syncToGitHub() {
             body: JSON.stringify(bodyObj)
         });
 
-        if (!putRes.ok) throw new Error(`Erreur GitHub (${putRes.status})`);
+        if (!putRes.ok) {
+            const errData = await putRes.json().catch(() => ({}));
+            throw new Error(errData.message || `Code ${putRes.status}`);
+        }
 
         const nowTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        statusEl.textContent = `✅ Synchronisé sur GitHub (backup.json) à ${nowTime}`;
+        if (statusEl) statusEl.textContent = `✅ Synchronisé sur GitHub (backup.json) à ${nowTime}`;
         showToast("✅ Sauvegarde envoyée sur GitHub !");
+        haptic('success');
     } catch (err) {
-        statusEl.textContent = "❌ Échec de la synchronisation (vérifie ton Token ou le nom du Repo).";
+        if (statusEl) statusEl.textContent = `❌ Échec : ${err.message}`;
         showToast("❌ Erreur GitHub : " + err.message);
     }
 }
 
 async function pullFromGitHub() {
+    haptic('tap');
     const cfg = getGithubConfig();
     if (!cfg.owner || !cfg.repo || !cfg.token) {
-        toggleGithubConfigDrawer();
+        toggleBackupDrawer();
         return showToast("⚠️ Configure d'abord tes accès GitHub");
     }
     if (!confirm("Remplacer les données de ce téléphone par la sauvegarde backup.json stockée sur ton GitHub ?")) return;
 
     const statusEl = document.getElementById('github-sync-status');
-    statusEl.textContent = "⏳ Téléchargement depuis GitHub...";
+    if (statusEl) statusEl.textContent = "⏳ Téléchargement depuis GitHub...";
 
     const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup.json`;
     try {
@@ -2292,16 +2457,20 @@ async function pullFromGitHub() {
                 "Accept": "application/vnd.github+json"
             }
         });
-        if (!res.ok) throw new Error("Fichier backup.json introuvable sur ce dépôt.");
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.message || "Fichier backup.json introuvable sur ce dépôt.");
+        }
 
         const data = await res.json();
-        const jsonStr = base64ToUtf8(data.content.replace(/\n/g, ''));
+        const jsonStr = base64ToUtf8(data.content);
         const parsed = JSON.parse(jsonStr);
 
         restoreFromPayload(parsed);
-        statusEl.textContent = `✅ Données restaurées depuis GitHub (${parsed.updatedAt || 'OK'})`;
+        if (statusEl) statusEl.textContent = `✅ Données restaurées depuis GitHub (${parsed.updatedAt || 'OK'})`;
+        haptic('success');
     } catch (err) {
-        statusEl.textContent = "❌ Erreur de chargement GitHub.";
+        if (statusEl) statusEl.textContent = `❌ Erreur : ${err.message}`;
         showToast("❌ Erreur chargement GitHub : " + err.message);
     }
 }
