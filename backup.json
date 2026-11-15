@@ -1,13 +1,13 @@
 {
-  "updatedAt": "12/11/2026 00:50:50",
+  "updatedAt": "15/11/2026 16:42:52",
   "homeConfig": {
-    "title": "Tableau de bord",
-    "subtitle": "Objectif 80 kg · V-Taper & Calisthénie",
+    "title": "Accueil",
+    "subtitle": "Objectif 80 kg & Calisthénie",
     "order": [
       "calendar",
-      "workout",
+      "water",
       "nutri",
-      "water"
+      "workout"
     ]
   },
   "nutriTargets": {
@@ -24,7 +24,7 @@
   },
   "programsV5": {
     "push": {
-      "title": "JOUR 1 : PUSH",
+      "title": "PUSH",
       "subtitle": "Pecs, Épaules, Triceps",
       "shortLabel": "Push",
       "color": "#005AA0",
@@ -122,8 +122,8 @@
       ]
     },
     "pull": {
-      "title": "JOUR 2 : PULL",
-      "subtitle": "Dos, Arrière d'épaule, Biceps, Lombaires",
+      "title": "PULL",
+      "subtitle": "Dos, Ar. épaule, Biceps, Lombaires",
       "shortLabel": "Pull",
       "color": "#7c3aed",
       "exercises": [
@@ -220,7 +220,7 @@
       ]
     },
     "legs": {
-      "title": "JOUR 3 : LEGS",
+      "title": "LEGS",
       "subtitle": "Cuisses, Ischios, Mollets, Abdos",
       "shortLabel": "Legs",
       "color": "#10b981",
@@ -318,7 +318,7 @@
       ]
     },
     "upper": {
-      "title": "JOUR 4 : UPPER V-TAPER",
+      "title": "UPPER V-TAPER",
       "subtitle": "Rappel Haut & Prépa Calisthénie",
       "shortLabel": "Upper",
       "color": "#f59e0b",
@@ -401,7 +401,7 @@
       ]
     },
     "lower": {
-      "title": "JOUR 5 : LOWER EXPRESS",
+      "title": "LOWER EXPRESS",
       "subtitle": "Unilatéral & Gainage Calisthénie",
       "shortLabel": "Lower",
       "color": "#06b6d4",
@@ -484,7 +484,15 @@
       ]
     }
   },
-  "workoutCalendarV5": {},
+  "workoutCalendarV5": {
+    "2026-11-02": "push",
+    "2026-11-04": "pull",
+    "2026-11-06": "legs",
+    "2026-11-07": "upper",
+    "2026-11-08": "lower",
+    "2026-11-09": "push",
+    "2026-11-11": "pull"
+  },
   "machineLibrary": {
     "developpe_incline_30_halteres": {
       "name": "Développé incliné 30° haltères"
@@ -655,6 +663,59 @@
   "machineLogs": {},
   "nutriLogs": {
     "2026-11-12": {
+      "water": 1.25,
+      "kcal": 2950,
+      "prot": 135,
+      "carbs": 224,
+      "fats": 95,
+      "meals": [
+        {
+          "name": "Crunchy 🥣",
+          "kcal": 800,
+          "prot": 5,
+          "carbs": 29,
+          "fats": 0
+        },
+        {
+          "name": "Tacos XL",
+          "kcal": 1850,
+          "prot": 100,
+          "carbs": 165,
+          "fats": 85
+        },
+        {
+          "name": "Boulgours viandes",
+          "kcal": 300,
+          "prot": 30,
+          "carbs": 30,
+          "fats": 10
+        }
+      ]
+    },
+    "2026-11-13": {
+      "water": 0,
+      "kcal": 1009,
+      "prot": 34,
+      "carbs": 110,
+      "fats": 29,
+      "meals": [
+        {
+          "name": "Cookie CROUS",
+          "kcal": 446,
+          "prot": 6,
+          "carbs": 64,
+          "fats": 0
+        },
+        {
+          "name": "Burger crispy quick",
+          "kcal": 563,
+          "prot": 28,
+          "carbs": 46,
+          "fats": 29
+        }
+      ]
+    },
+    "2026-11-15": {
       "water": 0,
       "kcal": 0,
       "prot": 0,
@@ -705,6 +766,20 @@
       "prot": 6,
       "carbs": 4,
       "fats": 16
+    },
+    {
+      "name": "Crunchy 🥣",
+      "kcal": 800,
+      "prot": 5,
+      "carbs": 29,
+      "fats": 0
+    },
+    {
+      "name": "Cookie CROUS",
+      "kcal": 446,
+      "prot": 6,
+      "carbs": 64,
+      "fats": 0
     }
   ],
   "weights": [],
