@@ -1,6 +1,6 @@
 {
   "version": "4.1",
-  "updatedAt": "15/11/2026 21:54:51",
+  "updatedAt": "15/11/2026 21:55:36",
   "homeConfig": {
     "title": "Accueil",
     "subtitle": "Objectif 80 kg & Calisthénie",
@@ -37,7 +37,7 @@
       "exercises": [
         {
           "id": "push_1",
-          "title": "Développé incliné 30° haltères",
+          "title": "Pecs Up",
           "sets": 4,
           "repsMin": 6,
           "repsMax": 8,
@@ -52,7 +52,7 @@
         },
         {
           "id": "push_2",
-          "title": "Dips lestés",
+          "title": "Pecs Low",
           "sets": 4,
           "repsMin": 8,
           "repsMax": 10,
@@ -67,7 +67,7 @@
         },
         {
           "id": "push_3",
-          "title": "Écartés poulie hauteur d'épaule",
+          "title": "Pecs Mid",
           "sets": 3,
           "repsMin": 10,
           "repsMax": 12,
@@ -82,7 +82,7 @@
         },
         {
           "id": "push_4",
-          "title": "Développé militaire haltères",
+          "title": "Épaules Up",
           "sets": 3,
           "repsMin": 8,
           "repsMax": 10,
@@ -97,7 +97,7 @@
         },
         {
           "id": "push_5",
-          "title": "Élévations latérales poulie basse",
+          "title": "Épaules Lat",
           "sets": 4,
           "repsMin": 12,
           "repsMax": 15,
@@ -112,7 +112,7 @@
         },
         {
           "id": "push_6",
-          "title": "Extensions triceps poulie haute",
+          "title": "Triceps",
           "sets": 3,
           "repsMin": 10,
           "repsMax": 12,
@@ -722,7 +722,7 @@
       ]
     },
     "2026-11-15": {
-      "water": 0,
+      "water": 0.5,
       "kcal": 0,
       "prot": 0,
       "carbs": 0,
