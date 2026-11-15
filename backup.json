@@ -1,6 +1,6 @@
 {
   "version": "4.5",
-  "updatedAt": "15/11/2026 22:50:13",
+  "updatedAt": "15/11/2026 22:54:27",
   "homeConfig": {
     "title": "Accueil",
     "subtitle": "Objectif 80 kg & Calisthénie",
@@ -33,7 +33,7 @@
       "title": "PUSH",
       "subtitle": "Pecs, Épaules, Triceps",
       "shortLabel": "Push",
-      "color": "#005AA0",
+      "color": "#b18cfe",
       "exercises": [
         {
           "id": "push_1",
@@ -131,7 +131,7 @@
       "title": "PULL",
       "subtitle": "Dos, Ar. épaule, Biceps, Lombaires",
       "shortLabel": "Pull",
-      "color": "#7c3aed",
+      "color": "#a7c6ff",
       "exercises": [
         {
           "id": "pull_1",
@@ -229,7 +229,7 @@
       "title": "LEGS",
       "subtitle": "Cuisses, Ischios, Mollets, Abdos",
       "shortLabel": "Legs",
-      "color": "#10b981",
+      "color": "#ff8686",
       "exercises": [
         {
           "id": "legs_1",
@@ -327,7 +327,7 @@
       "title": "UPPER V-TAPER",
       "subtitle": "Rappel Haut & Prépa Calisthénie",
       "shortLabel": "Upper",
-      "color": "#f59e0b",
+      "color": "#ffa57d",
       "exercises": [
         {
           "id": "up_1",
@@ -410,7 +410,7 @@
       "title": "LOWER EXPRESS",
       "subtitle": "Unilatéral & Gainage Calisthénie",
       "shortLabel": "Lower",
-      "color": "#06b6d4",
+      "color": "#b1dd8b",
       "exercises": [
         {
           "id": "low_1",
