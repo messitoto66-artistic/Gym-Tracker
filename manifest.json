@@ -1,6 +1,6 @@
 {
-  "name": "V-Taper Tracker",
-  "short_name": "V-Taper",
+  "name": "Gym-Tracker",
+  "short_name": "Gym-Tracker",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0d0d11",

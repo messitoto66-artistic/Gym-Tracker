@@ -1,4 +1,4 @@
-// app.js — VERSION V5.2 (Accueil Réorganisable, Sans Doublons + Calculateur Bilan Calorique)
+// app.js — VERSION 6.1 (Correctifs Bugs Bloquants, Fonctions Manquantes, Chrono Actif, Poids Dynamique)
 
 let currentDayKey = 'push';
 let timerInterval = null;
@@ -9,6 +9,10 @@ let homeCalMonthOffset = 0;
 let nutriCalMonthOffset = 0;
 let selectedNutriDateKey = getTodayDateKey();
 let modalTargetDateKey = null;
+let expandedExoId = null;
+let isFavEditMode = false;
+let showAllRecordsFlag = false;
+let toastTimeout = null;
 
 const DEFAULT_WORKOUT_COLORS = {
     push: "#005AA0",
@@ -19,10 +23,17 @@ const DEFAULT_WORKOUT_COLORS = {
 };
 
 const HOME_BLOCK_LABELS = {
-    calendar: "📅 Calendrier du mois",
-    workout: "🏋️ Entraînement sélectionné",
-    nutri: "🥗 Nutrition du jour",
-    water: "💧 Hydratation"
+    calendar: "Calendrier du mois",
+    workout: "Séance du jour",
+    nutri: "Nutrition aujourd'hui",
+    water: "Hydratation"
+};
+
+const NUTRI_BLOCK_LABELS = {
+    calendar: "Calendrier thermique",
+    summary: "Bilan calorique & macros",
+    favorites: "Mes favoris & ajout",
+    log: "Journal du jour"
 };
 
 const DEFAULT_FAVORITES = [
@@ -35,12 +46,54 @@ const DEFAULT_FAVORITES = [
 ];
 
 window.addEventListener('DOMContentLoaded', () => {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
     initV5Database();
     applyHomeLayoutOrder();
+    applyNutriLayoutOrder();
     renderDaySelectorBar();
     loadWorkout(currentDayKey);
     updateAllViews();
 });
+
+// Notification Toast fluide (A6)
+function showToast(message) {
+    const toast = document.getElementById('toast-notification');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toast.classList.remove('show'), 2400);
+}
+
+// Fonctions de bascule de tiroirs manquantes (Bugs bloquants V6.0)
+function toggleBackupDrawer() {
+    const drawer = document.getElementById('backup-main-drawer');
+    if (!drawer) return;
+    const cfg = getGithubConfig();
+    document.getElementById('gh-owner').value = cfg.owner || '';
+    document.getElementById('gh-repo').value = cfg.repo || '';
+    document.getElementById('gh-token').value = cfg.token || '';
+    drawer.classList.toggle('open');
+}
+
+function toggleCustomFoodDrawer() {
+    const drawer = document.getElementById('custom-food-drawer');
+    if (drawer) drawer.classList.toggle('open');
+}
+
+function toggleAllRecords() {
+    showAllRecordsFlag = !showAllRecordsFlag;
+    const recordsList = document.getElementById('records-list');
+    const btn = document.getElementById('toggle-records-btn');
+    if (!recordsList || !btn) return;
+    const items = recordsList.querySelectorAll('.record-row');
+    items.forEach((item, idx) => {
+        item.style.display = (showAllRecordsFlag || idx < 5) ? 'flex' : 'none';
+    });
+    btn.textContent = showAllRecordsFlag ? '▲ Voir moins' : '▼ Voir tout';
+}
 
 function getTodayDateKey() {
     const now = new Date();
@@ -56,7 +109,7 @@ function toMachineKey(name) {
 }
 
 // =========================================================
-// 1. CONFIGURATION ACCUEIL & CIBLES NUTRITIONNELLES
+// 1. CONFIGURATION ACCUEIL & NUTRITION
 // =========================================================
 function getHomeConfig() {
     const def = {
@@ -131,9 +184,65 @@ function saveHomeCustomization() {
     applyHomeLayoutOrder();
     document.getElementById('home-edit-drawer').classList.remove('open');
     updateAllViews();
+    showToast("✅ Affichage de l'accueil mis à jour");
 }
 
-// CIBLES NUTRITIONNELLES DYNAMIQUES
+// B1 : Changer la séance du jour directement depuis l'Accueil (< >)
+function cycleHomeWorkout(delta) {
+    const programs = getPrograms();
+    const keys = Object.keys(programs);
+    if (keys.length <= 1) return;
+    const curIdx = keys.indexOf(currentDayKey);
+    const nextIdx = (curIdx + delta + keys.length) % keys.length;
+    currentDayKey = keys[nextIdx];
+    loadWorkout(currentDayKey);
+    updateHomeDashboard();
+}
+
+// ORDRE DE LA PAGE NUTRITION
+function getNutriOrder() {
+    const def = ["calendar", "summary", "favorites", "log"];
+    const saved = JSON.parse(localStorage.getItem('vtaper_nutri_order_v6') || 'null');
+    return (saved && saved.length === 4) ? saved : def;
+}
+
+function renderNutriOrderEditor() {
+    const orderArr = getNutriOrder();
+    const box = document.getElementById('nutri-order-list');
+    if (!box) return;
+    box.innerHTML = orderArr.map((blockId, idx) => `
+        <div class="order-row-item">
+            <span>${idx + 1}. ${NUTRI_BLOCK_LABELS[blockId] || blockId}</span>
+            <div class="order-arrows">
+                <button onclick="moveNutriBlock(${idx}, -1)" ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}>▲</button>
+                <button onclick="moveNutriBlock(${idx}, 1)" ${idx === orderArr.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>▼</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function moveNutriBlock(idx, delta) {
+    const orderArr = getNutriOrder();
+    const targetIdx = idx + delta;
+    if (targetIdx < 0 || targetIdx >= orderArr.length) return;
+    const temp = orderArr[idx];
+    orderArr[idx] = orderArr[targetIdx];
+    orderArr[targetIdx] = temp;
+    localStorage.setItem('vtaper_nutri_order_v6', JSON.stringify(orderArr));
+    renderNutriOrderEditor();
+    applyNutriLayoutOrder();
+}
+
+function applyNutriLayoutOrder() {
+    const orderArr = getNutriOrder();
+    const container = document.getElementById('nutri-cards-container');
+    if (!container) return;
+    orderArr.forEach(blockId => {
+        const el = document.getElementById(`nutri-block-${blockId}`);
+        if (el) container.appendChild(el);
+    });
+}
+
 function getNutriTargets() {
     const def = {
         weight: 70, height: 178, age: 22, activity: 1.55, goalDelta: 300,
@@ -160,10 +269,10 @@ function toggleNutriCalcDrawer() {
     document.getElementById('target-fats').value = t.fats;
     document.getElementById('target-water').value = t.water;
 
+    renderNutriOrderEditor();
     drawer.classList.toggle('open');
 }
 
-// Formule métabolique de Mifflin-St Jeor + Répartition sportive (2.1g Prot/kg, 1.1g Lip/kg, reste en Glucides)
 function computeMetabolicTargets() {
     const w = parseFloat(document.getElementById('calc-weight').value) || 70;
     const h = parseFloat(document.getElementById('calc-height').value) || 178;
@@ -171,13 +280,12 @@ function computeMetabolicTargets() {
     const act = parseFloat(document.getElementById('calc-activity').value) || 1.55;
     const goal = parseInt(document.getElementById('calc-goal').value) || 0;
 
-    // BMR Homme = (10 × poids) + (6.25 × taille) - (5 × âge) + 5
     const bmr = (10 * w) + (6.25 * h) - (5 * a) + 5;
     const tdee = Math.round(bmr * act);
     const totalKcal = Math.round((tdee + goal) / 10) * 10;
 
-    const prot = Math.round(w * 2.1); // ~2.1g / kg
-    const fats = Math.round(w * 1.1); // ~1.1g / kg
+    const prot = Math.round(w * 2.1);
+    const fats = Math.round(w * 1.1);
     const remainingKcal = Math.max(0, totalKcal - (prot * 4) - (fats * 9));
     const carbs = Math.round(remainingKcal / 4);
 
@@ -185,6 +293,7 @@ function computeMetabolicTargets() {
     document.getElementById('target-prot').value = prot;
     document.getElementById('target-carbs').value = carbs;
     document.getElementById('target-fats').value = fats;
+    showToast("🔄 Macros recalculées");
 }
 
 function saveNutriTargets() {
@@ -208,11 +317,11 @@ function saveNutriTargets() {
 
     document.getElementById('nutri-calc-drawer').classList.remove('open');
     updateAllViews();
-    alert(`✅ Nouveau bilan appliqué : ${newTargets.kcal} kcal (${newTargets.prot}g P / ${newTargets.carbs}g G / ${newTargets.fats}g L)`);
+    showToast(`✅ Nouveau bilan : ${newTargets.kcal} kcal`);
 }
 
 // =========================================================
-// 2. INITIALISATION & BASE DE DONNÉES V5
+// 2. INITIALISATION & BIBLIOTHÈQUE MACHINES (AVEC NOTES C3)
 // =========================================================
 function initV5Database() {
     let programs = JSON.parse(localStorage.getItem('vtaper_programs_v5') || 'null');
@@ -284,8 +393,23 @@ function registerMachineInLibrary(machineName, libObj = null) {
     if (!machineName) return;
     const lib = libObj || getMachineLibrary();
     const key = toMachineKey(machineName);
-    if (!lib[key]) lib[key] = { name: machineName.trim() };
+    if (!lib[key]) lib[key] = { name: machineName.trim(), note: "" };
     if (!libObj) localStorage.setItem('vtaper_machine_library', JSON.stringify(lib));
+}
+
+// C3 : Sauvegarde de la note de réglage par machine (ex: "Siège cran 4")
+function getMachineNote(machineName) {
+    const lib = getMachineLibrary();
+    const key = toMachineKey(machineName);
+    return (lib[key] && lib[key].note) ? lib[key].note : "";
+}
+
+function saveMachineNote(machineName, noteVal) {
+    const lib = getMachineLibrary();
+    const key = toMachineKey(machineName);
+    if (!lib[key]) lib[key] = { name: machineName.trim(), note: "" };
+    lib[key].note = noteVal.trim();
+    localStorage.setItem('vtaper_machine_library', JSON.stringify(lib));
 }
 
 function getMachineLogs() { return JSON.parse(localStorage.getItem('vtaper_machine_logs') || '{}'); }
@@ -312,8 +436,21 @@ function computeSessionMetrics(setsArray) {
 }
 
 // =========================================================
-// 3. MODE GYM (PROGRAMMES HORIZONTAUX & SÉANCE VERTICALE)
+// 3. MODE GYM (C1, C2, C3, C5 BROUILLON AUTO & BANDEAU C7)
 // =========================================================
+function toggleGymAdminDrawer() {
+    const d = document.getElementById('gym-admin-drawer');
+    if (d) d.classList.toggle('open');
+}
+
+function toggleExoAccordion(exoId) {
+    expandedExoId = (expandedExoId === exoId) ? null : exoId;
+    document.querySelectorAll('#workout-container .exo-card').forEach(card => {
+        if (card.id === `card_${expandedExoId}`) card.classList.add('expanded');
+        else card.classList.remove('expanded');
+    });
+}
+
 function renderDaySelectorBar() {
     const programs = getPrograms();
     const nav = document.getElementById('day-selector-bar');
@@ -325,8 +462,8 @@ function renderDaySelectorBar() {
         const label = dayObj.shortLabel || dayObj.title;
         const color = dayObj.color || '#005AA0';
         const activeStyle = isActive
-            ? `style="background:${color}; color:#fff; border-color:${color};"`
-            : `style="border-bottom: 3px solid ${color};"`;
+            ? `style="background:${color}; color:#fff; box-shadow: 0 3px 10px ${color}35;"`
+            : `style="border-bottom: 2.5px solid ${color}45; color: var(--text-muted);"`;
 
         html += `<button class="day-btn ${isActive ? 'active' : ''}" ${activeStyle} onclick="loadWorkout('${dayKey}')">${label}</button>`;
     });
@@ -343,12 +480,13 @@ function changeCurrentWorkoutColor(newColor) {
     renderDaySelectorBar();
     loadWorkout(currentDayKey);
     updateHomeDashboard();
+    showToast("🎨 Couleur de séance enregistrée");
 }
 
 function createNewWorkoutDay() {
     const shortName = prompt("Nom court de l'onglet (ex: Bras, FullBody, Calisthénie) :");
     if (!shortName) return;
-    const fullTitle = prompt("Titre complet de la séance :", `SÉANCE : ${shortName.toUpperCase()}`) || shortName;
+    const fullTitle = prompt("Titre complet de la séance :", `Séance ${shortName}`) || shortName;
     const subtitle = prompt("Sous-titre (muscles ciblés) :", "Programme personnalisé") || "";
 
     const programs = getPrograms();
@@ -368,6 +506,7 @@ function createNewWorkoutDay() {
     renderDaySelectorBar();
     loadWorkout(newKey);
     updateHomeDashboard();
+    showToast(`✅ Séance "${shortName}" créée`);
 }
 
 function renameCurrentWorkout() {
@@ -387,11 +526,12 @@ function renameCurrentWorkout() {
     renderDaySelectorBar();
     loadWorkout(currentDayKey);
     updateHomeDashboard();
+    showToast("✅ Séance renommée");
 }
 
 function deleteCurrentWorkout() {
     const programs = getPrograms();
-    if (Object.keys(programs).length <= 1) return alert("Tu dois garder au moins une séance.");
+    if (Object.keys(programs).length <= 1) return showToast("⚠️ Garde au moins une séance");
     if (!confirm(`Supprimer définitivement la séance "${programs[currentDayKey].title}" ?`)) return;
 
     delete programs[currentDayKey];
@@ -400,6 +540,7 @@ function deleteCurrentWorkout() {
     renderDaySelectorBar();
     loadWorkout(currentDayKey);
     updateHomeDashboard();
+    showToast("🗑️ Séance supprimée");
 }
 
 function populateLibrarySelect() {
@@ -408,7 +549,7 @@ function populateLibrarySelect() {
     const lib = getMachineLibrary();
     const sorted = Object.values(lib).sort((a, b) => a.name.localeCompare(b.name));
 
-    select.innerHTML = `<option value="">📚 Choisir une machine existante (${sorted.length} en mémoire)...</option>` +
+    select.innerHTML = `<option value="">📚 Choisir une machine existante (${sorted.length})...</option>` +
         sorted.map(item => `<option value="${item.name}">${item.name}</option>`).join('');
 }
 
@@ -426,8 +567,7 @@ function addExerciseToCurrentWorkout() {
 
     const exoTitle = titleInput.value.trim();
     const machineName = machineInput.value.trim();
-
-    if (!exoTitle && !machineName) return alert("Renseigne un titre d'exercice et/ou une machine.");
+    if (!exoTitle && !machineName) return showToast("⚠️ Indique un titre ou une machine");
 
     const finalTitle = exoTitle || machineName;
     const finalMachine = machineName || exoTitle;
@@ -441,8 +581,9 @@ function addExerciseToCurrentWorkout() {
     const workout = programs[currentDayKey];
     const isFirst = workout.exercises.length === 0;
 
+    const newExoId = 'exo_' + Date.now();
     workout.exercises.push({
-        id: 'exo_' + Date.now(),
+        id: newExoId,
         title: finalTitle,
         sets,
         repsMin,
@@ -460,7 +601,9 @@ function addExerciseToCurrentWorkout() {
     titleInput.value = '';
     machineInput.value = '';
     document.getElementById('library-machine-select').value = '';
+    expandedExoId = newExoId;
     loadWorkout(currentDayKey);
+    showToast("✅ Exercice ajouté");
 }
 
 function deleteExerciseFromWorkout(exoId) {
@@ -470,6 +613,44 @@ function deleteExerciseFromWorkout(exoId) {
     workout.exercises = workout.exercises.filter(e => e.id !== exoId);
     savePrograms(programs);
     loadWorkout(currentDayKey);
+    showToast("🗑️ Exercice retiré");
+}
+
+// C5 : Gestion du Brouillon Automatique (Auto-Save Draft en cours de séance)
+function getGymDraft() {
+    return JSON.parse(localStorage.getItem('vtaper_gym_draft') || '{}');
+}
+
+function saveGymDraftState() {
+    const programs = getPrograms();
+    const workout = programs[currentDayKey];
+    if (!workout) return;
+
+    const drafts = getGymDraft();
+    const dayDraft = {};
+
+    workout.exercises.forEach(exo => {
+        const setsArr = [];
+        for (let i = 0; i < exo.sets; i++) {
+            const row = document.getElementById(`row_${exo.id}_${i}`);
+            if (!row) continue;
+            setsArr.push({
+                weight: row.querySelector('.weight-input').value,
+                reps: row.querySelector('.reps-input').value,
+                done: row.classList.contains('done')
+            });
+        }
+        dayDraft[exo.id] = setsArr;
+    });
+
+    drafts[currentDayKey] = dayDraft;
+    localStorage.setItem('vtaper_gym_draft', JSON.stringify(drafts));
+}
+
+function clearGymDraftForDay(dayKey) {
+    const drafts = getGymDraft();
+    delete drafts[dayKey];
+    localStorage.setItem('vtaper_gym_draft', JSON.stringify(drafts));
 }
 
 function loadWorkout(dayKey) {
@@ -478,6 +659,10 @@ function loadWorkout(dayKey) {
     currentDayKey = dayKey;
     const workout = programs[dayKey];
     const workoutColor = workout.color || '#005AA0';
+
+    if (workout.exercises.length > 0 && !workout.exercises.some(e => e.id === expandedExoId)) {
+        expandedExoId = workout.exercises[0].id;
+    }
 
     renderDaySelectorBar();
     populateLibrarySelect();
@@ -498,15 +683,18 @@ function loadWorkout(dayKey) {
 
     const lib = getMachineLibrary();
     const allLibNames = Object.values(lib).map(x => x.name).sort();
+    const dayDraft = getGymDraft()[dayKey] || {};
 
-    workout.exercises.forEach(exo => {
+    workout.exercises.forEach((exo, exoIdx) => {
         const activeIdx = Math.min(exo.activeVariantIndex || 0, exo.variants.length - 1);
         const currentMachineName = exo.variants[activeIdx];
         const exoTitle = exo.title || currentMachineName;
-        const mKey = toMachineKey(currentMachineName);
+        const isExpanded = (exo.id === expandedExoId);
+        const machineNote = getMachineNote(currentMachineName);
 
         const lastPerf = getLastSessionForMachine(currentMachineName);
         const coach = getCoachRecommendation(exo, lastPerf);
+        const exoDraft = dayDraft[exo.id] || null;
 
         const optionsHTML = exo.variants.map((vName, idx) =>
             `<option value="${idx}" ${idx === activeIdx ? 'selected' : ''}>📍 ${vName}</option>`
@@ -523,12 +711,17 @@ function loadWorkout(dayKey) {
         const datalistHTML = `<datalist id="${datalistId}">${allLibNames.map(n => `<option value="${n}">`).join('')}</datalist>`;
 
         let setsHTML = '';
+        let doneCount = 0;
+
         for (let i = 0; i < exo.sets; i++) {
-            const targetW = coach.prefillSets[i] ? coach.prefillSets[i].weight : '';
-            const targetR = coach.prefillSets[i] ? coach.prefillSets[i].reps : exo.repsMin;
+            const draftSet = exoDraft && exoDraft[i] ? exoDraft[i] : null;
+            const targetW = draftSet ? draftSet.weight : (coach.prefillSets[i] ? coach.prefillSets[i].weight : '');
+            const targetR = draftSet ? draftSet.reps : (coach.prefillSets[i] ? coach.prefillSets[i].reps : exo.repsMin);
+            const isDone = draftSet && draftSet.done;
+            if (isDone) doneCount++;
 
             setsHTML += `
-                <div class="set-row" id="row_${exo.id}_${i}">
+                <div class="set-row ${isDone ? 'done' : ''}" id="row_${exo.id}_${i}">
                     <span class="set-num">S${i + 1}</span>
                     <div class="stepper-control">
                         <button class="step-btn" onclick="stepValue('${exo.id}', ${i}, 'weight', -1)">−</button>
@@ -547,75 +740,88 @@ function loadWorkout(dayKey) {
             `;
         }
 
-        const initialWeight = coach.prefillSets[0] ? coach.prefillSets[0].weight : 0;
-        const warmupHTML = exo.hasWarmupRamp ? `
-            <div class="warmup-box" id="warmup_${exo.id}">
-                ${getWarmupText(initialWeight)}
-            </div>
-        ` : '';
+        const initialWeight = (exoDraft && exoDraft[0]) ? exoDraft[0].weight : (coach.prefillSets[0] ? coach.prefillSets[0].weight : 0);
+        const allDoneClass = (doneCount === exo.sets) ? 'all-sets-done' : '';
 
         const card = document.createElement('div');
-        card.className = 'exo-card';
-        card.style.borderTop = `3px solid ${workoutColor}`;
+        card.className = `exo-card ${isExpanded ? 'expanded' : ''} ${allDoneClass}`;
+        card.id = `card_${exo.id}`;
+        card.style.borderLeft = `4px solid ${workoutColor}`;
         card.innerHTML = `
-            <div class="exo-header">
-                <div>
-                    <div class="exo-title">${exoTitle}</div>
-                    <div style="font-size:0.65rem; color:var(--text-muted); font-family:monospace;">ID machine : ${mKey}</div>
+            <div class="exo-summary-bar" onclick="toggleExoAccordion('${exo.id}')">
+                <div class="exo-summary-left">
+                    <div class="exo-step-circle" id="circle_${exo.id}">${doneCount === exo.sets ? '✓' : exoIdx + 1}</div>
+                    <div>
+                        <div class="exo-title">${exoTitle}</div>
+                        <div class="exo-sub-info">${exo.sets}×${exo.repsMin}-${exo.repsMax} Reps · RIR ${exo.rir}</div>
+                    </div>
                 </div>
-                <button class="gear-btn" onclick="toggleSettingsDrawer('${exo.id}')">⚙️</button>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="badge" id="progress_pill_${exo.id}">${doneCount}/${exo.sets}</span>
+                    <button class="gear-btn" onclick="event.stopPropagation(); toggleSettingsDrawer('${exo.id}')">⚙️</button>
+                </div>
             </div>
 
-            <div class="machine-selector-row">
+            <div class="exo-body-collapsible">
                 <select class="machine-select" onchange="selectMachineVariant('${exo.id}', this.value)">
                     ${optionsHTML}
                 </select>
-            </div>
 
-            <div class="settings-drawer" id="drawer_${exo.id}">
-                <div style="margin-bottom:8px;">
-                    <label style="font-size:0.65rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Titre de l'exercice</label>
-                    <input type="text" id="cfg_title_${exo.id}" class="set-input" value="${exoTitle}" style="background:#fff; text-align:left; padding:6px 10px; margin-top:3px; font-size:0.85rem;">
-                </div>
-                <div class="settings-grid">
-                    <div class="settings-field"><label>Séries</label><input type="number" id="cfg_sets_${exo.id}" value="${exo.sets}"></div>
-                    <div class="settings-field"><label>Reps Min</label><input type="number" id="cfg_min_${exo.id}" value="${exo.repsMin}"></div>
-                    <div class="settings-field"><label>Reps Max</label><input type="number" id="cfg_max_${exo.id}" value="${exo.repsMax}"></div>
-                    <div class="settings-field"><label>RIR cible</label><input type="text" id="cfg_rir_${exo.id}" value="${exo.rir}"></div>
-                    <div class="settings-field"><label>Repos (sec)</label><input type="number" id="cfg_rest_${exo.id}" value="${exo.rest}"></div>
-                    <div class="settings-field" style="display:flex; align-items:flex-end;">
-                        <button class="primary-btn" style="padding:7px; font-size:0.75rem;" onclick="applyExoSettings('${exo.id}')">Sauver</button>
+                <!-- C3 : Note de réglage liée à la machine -->
+                <input type="text" class="machine-note-input" placeholder="📝 Ajouter une note machine (ex: Siège cran 4, poulie basse...)" 
+                       value="${machineNote.replace(/"/g, '&quot;')}" 
+                       onchange="saveMachineNote('${currentMachineName.replace(/'/g, "\\'")}', this.value); showToast('📝 Note machine enregistrée');">
+
+                <!-- Panneau Engrenage ⚙️ -->
+                <div class="settings-drawer" id="drawer_${exo.id}">
+                    <div style="margin-bottom:8px;">
+                        <label class="field-label">Titre de l'exercice</label>
+                        <input type="text" id="cfg_title_${exo.id}" class="clean-input" value="${exoTitle}" style="background:#fff; padding:6px 10px;">
+                    </div>
+                    <div class="settings-grid">
+                        <div class="settings-field"><label>Séries</label><input type="number" id="cfg_sets_${exo.id}" value="${exo.sets}"></div>
+                        <div class="settings-field"><label>Reps Min</label><input type="number" id="cfg_min_${exo.id}" value="${exo.repsMin}"></div>
+                        <div class="settings-field"><label>Reps Max</label><input type="number" id="cfg_max_${exo.id}" value="${exo.repsMax}"></div>
+                        <div class="settings-field"><label>RIR cible</label><input type="text" id="cfg_rir_${exo.id}" value="${exo.rir}"></div>
+                        <div class="settings-field"><label>Repos (sec)</label><input type="number" id="cfg_rest_${exo.id}" value="${exo.rest}"></div>
+                        <div class="settings-field" style="display:flex; align-items:flex-end;">
+                            <button class="primary-btn" style="padding:7px; font-size:0.75rem;" onclick="applyExoSettings('${exo.id}')">Sauver</button>
+                        </div>
+                    </div>
+                    <div style="border-top:1px solid var(--border); padding-top:8px;">
+                        <label class="field-label">Machines disponibles pour cet exercice</label>
+                        <div class="variant-chip-list">${chipsHTML}</div>
+                        ${datalistHTML}
+                        <div style="display:flex; gap:6px; margin-top:6px;">
+                            <input type="text" list="${datalistId}" id="new_var_${exo.id}" class="clean-input" placeholder="Ajouter une machine..." style="background:#fff; padding:6px 10px;">
+                            <button class="secondary-btn" style="padding:6px 12px; font-size:0.78rem; width:auto;" onclick="addVariant('${exo.id}')">+ Machine</button>
+                        </div>
+                    </div>
+                    <div style="border-top:1px solid var(--border); margin-top:10px; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <label style="font-size:0.72rem; color:var(--text-muted);">
+                            <input type="checkbox" ${exo.hasWarmupRamp ? 'checked' : ''} onchange="toggleWarmupFlag('${exo.id}', this.checked)"> Rampe d'échauffement
+                        </label>
+                        <button class="mini-tool-btn danger" onclick="deleteExerciseFromWorkout('${exo.id}')">Retirer</button>
                     </div>
                 </div>
-                <div style="border-top:1px solid var(--border); padding-top:8px;">
-                    <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted);">MACHINES DISPONIBLES POUR CET EXERCICE :</label>
-                    <div class="variant-chip-list">${chipsHTML}</div>
-                    ${datalistHTML}
-                    <div style="display:flex; gap:6px; margin-top:6px;">
-                        <input type="text" list="${datalistId}" id="new_var_${exo.id}" class="set-input" placeholder="Ajouter une machine..." style="padding:6px 10px; font-size:0.78rem; text-align:left; background:#fff;">
-                        <button class="secondary-btn" style="padding:6px 12px; font-size:0.78rem; width:auto;" onclick="addVariant('${exo.id}')">+ Machine</button>
-                    </div>
-                </div>
-                <div style="border-top:1px solid var(--border); margin-top:10px; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <label style="font-size:0.7rem; color:var(--text-muted);">
-                        <input type="checkbox" ${exo.hasWarmupRamp ? 'checked' : ''} onchange="toggleWarmupFlag('${exo.id}', this.checked)"> Rampe d'échauffement
-                    </label>
-                    <button class="mini-tool-btn danger" onclick="deleteExerciseFromWorkout('${exo.id}')">🗑️ Retirer l'exo</button>
-                </div>
-            </div>
 
-            <div class="exo-meta">
-                <span class="badge">🎯 ${exo.sets}×${exo.repsMin}-${exo.repsMax}</span>
-                <span class="badge">⚡ RIR ${exo.rir}</span>
-                <span class="badge">⏱️ ${exo.rest}s</span>
-                <span class="badge badge-1rm" id="1rm_${exo.id}">💪 1RM : -- kg</span>
+                <!-- RÈGLE C7 : Bandeau général épuré (Séries/Reps · RIR · Repos · 1RM) -->
+                <div class="c7-general-banner">
+                    <span>${exo.sets}×${exo.repsMin}-${exo.repsMax} Reps · RIR ${exo.rir} · Repos ${exo.rest}s</span>
+                    <span class="c7-1rm-val" id="1rm_${exo.id}">1RM : -- kg</span>
+                </div>
+
+                <!-- RÈGLE C1 : Indication Coach + Rampe fusionnée sans boîte lourde -->
+                <div class="c1-coach-line ${coach.isLevelUp ? 'level-up' : ''}" id="coach_line_${exo.id}">
+                    ${coach.textHTML}
+                    ${exo.hasWarmupRamp && doneCount === 0 ? `<span id="warmup_${exo.id}" style="display:block; margin-top:2px;">${getWarmupText(initialWeight)}</span>` : ''}
+                </div>
+
+                <div class="sets-header">
+                    <span>#</span><span>Poids (kg)</span><span>Reps</span><span>OK</span>
+                </div>
+                ${setsHTML}
             </div>
-            ${coach.bannerHTML}
-            ${warmupHTML}
-            <div class="sets-header">
-                <span>#</span><span>Poids (kg)</span><span>Reps</span><span>OK</span>
-            </div>
-            ${setsHTML}
         `;
         container.appendChild(card);
         updateExerciseMetrics(exo.id);
@@ -623,6 +829,8 @@ function loadWorkout(dayKey) {
 }
 
 function toggleSettingsDrawer(exoId) {
+    const card = document.getElementById(`card_${exoId}`);
+    if (card && !card.classList.contains('expanded')) toggleExoAccordion(exoId);
     const drawer = document.getElementById(`drawer_${exoId}`);
     if (drawer) drawer.classList.toggle('open');
 }
@@ -661,12 +869,13 @@ function applyExoSettings(exoId) {
 
     savePrograms(programs);
     loadWorkout(currentDayKey);
+    showToast("✅ Paramètres de l'exercice enregistrés");
 }
 
 function addVariant(exoId) {
     const input = document.getElementById(`new_var_${exoId}`);
     const val = input.value.trim();
-    if (!val) return alert("Entre ou sélectionne le nom de la machine.");
+    if (!val) return showToast("⚠️ Entre le nom de la machine");
 
     const programs = getPrograms();
     const exo = programs[currentDayKey].exercises.find(e => e.id === exoId);
@@ -678,6 +887,7 @@ function addVariant(exoId) {
     registerMachineInLibrary(val);
     savePrograms(programs);
     loadWorkout(currentDayKey);
+    showToast(`✅ Machine "${val}" ajoutée`);
 }
 
 function removeVariant(exoId, idx) {
@@ -701,11 +911,13 @@ function removeVariant(exoId, idx) {
     loadWorkout(currentDayKey);
 }
 
+// C1 : Recommandation Coach épurée en une ligne
 function getCoachRecommendation(exo, lastPerf) {
     const emptySets = Array.from({ length: exo.sets }, () => ({ weight: '', reps: exo.repsMin }));
     if (!lastPerf || !lastPerf.sets || lastPerf.sets.length === 0) {
         return {
-            bannerHTML: `<div class="coach-banner"><span>💡 Aucune donnée sur cette machine : trouve ta charge à RIR ${exo.rir}</span></div>`,
+            isLevelUp: false,
+            textHTML: `💡 Première fois sur cette machine : trouve ta charge à <b>RIR ${exo.rir}</b>`,
             prefillSets: emptySets
         };
     }
@@ -716,10 +928,8 @@ function getCoachRecommendation(exo, lastPerf) {
     if (allMaxed && lastWeight > 0) {
         const nextWeight = lastWeight + 2;
         return {
-            bannerHTML: `<div class="coach-banner level-up">
-                            <span>🔥 <b>Coach :</b> Validé le ${lastPerf.displayDate} ! Passe à <b>${nextWeight} kg</b></span>
-                            <span>+2 kg</span>
-                         </div>`,
+            isLevelUp: true,
+            textHTML: `🔥 Objectif validé le ${lastPerf.displayDate} : passe à <b>${nextWeight} kg (+2 kg)</b>`,
             prefillSets: Array.from({ length: exo.sets }, () => ({ weight: nextWeight, reps: exo.repsMin }))
         };
     } else {
@@ -729,10 +939,8 @@ function getCoachRecommendation(exo, lastPerf) {
             return { weight: prev.weight || lastWeight, reps: Math.min(prevReps + 1, exo.repsMax) };
         });
         return {
-            bannerHTML: `<div class="coach-banner">
-                            <span>🎯 <b>Coach :</b> Garde <b>${lastWeight} kg</b> et vise +1 rep</span>
-                            <span>Vu le ${lastPerf.displayDate}</span>
-                         </div>`,
+            isLevelUp: false,
+            textHTML: `🎯 Coach : garde <b>${lastWeight} kg</b> et vise <b>+1 rep</b> (vu le ${lastPerf.displayDate})`,
             prefillSets: prefill
         };
     }
@@ -752,6 +960,7 @@ function onSetInputChange(exoId, setIndex) {
         updateWarmup(exoId, row0.querySelector('.weight-input').value);
     }
     updateExerciseMetrics(exoId);
+    saveGymDraftState(); // Sauvegarde en brouillon en direct (C5)
 }
 
 function updateExerciseMetrics(exoId) {
@@ -771,13 +980,13 @@ function updateExerciseMetrics(exoId) {
         }
     }
     const badge1RM = document.getElementById(`1rm_${exoId}`);
-    if (badge1RM) badge1RM.textContent = best1RM > 0 ? `💪 1RM : ${best1RM.toFixed(1)} kg` : `💪 1RM : -- kg`;
+    if (badge1RM) badge1RM.textContent = best1RM > 0 ? `1RM : ${best1RM.toFixed(1)} kg` : `1RM : -- kg`;
 }
 
 function getWarmupText(weight) {
     const w = parseFloat(weight);
-    if (!w || w <= 0) return `🔥 <b>Rampe nerveuse :</b> Entre ton poids en S1 pour calculer tes paliers (50% / 75% / 90%).`;
-    return `🔥 <b>Rampe :</b> 10 reps à <b>${Math.round(w * 0.5)}kg</b> ➔ 5 reps à <b>${Math.round(w * 0.75)}kg</b> ➔ 2 reps à <b>${Math.round(w * 0.9)}kg</b>`;
+    if (!w || w <= 0) return `🔥 Rampe : entre ton poids en S1 (50% / 75% / 90%)`;
+    return `🔥 Rampe : 10×<b>${Math.round(w * 0.5)}kg</b> ➔ 5×<b>${Math.round(w * 0.75)}kg</b> ➔ 2×<b>${Math.round(w * 0.9)}kg</b>`;
 }
 
 function updateWarmup(exoId, val) {
@@ -796,6 +1005,7 @@ function saveWorkoutSession() {
     const displayDate = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
 
     let savedCount = 0;
+    let lastMachineUpdated = "";
 
     workout.exercises.forEach(exo => {
         const activeIdx = Math.min(exo.activeVariantIndex || 0, exo.variants.length - 1);
@@ -813,6 +1023,7 @@ function saveWorkoutSession() {
 
         if (setsData.length > 0) {
             savedCount++;
+            lastMachineUpdated = machineName;
             registerMachineInLibrary(machineName);
             const metrics = computeSessionMetrics(setsData);
             if (!machineLogs[mKey]) machineLogs[mKey] = [];
@@ -832,9 +1043,10 @@ function saveWorkoutSession() {
         }
     });
 
-    if (savedCount === 0) return alert("Remplis au moins une série avant de sauvegarder.");
+    if (savedCount === 0) return showToast("⚠️ Remplis au moins une série");
 
     localStorage.setItem('vtaper_machine_logs', JSON.stringify(machineLogs));
+    clearGymDraftForDay(currentDayKey); // Efface le brouillon une fois la séance validée
 
     const cal = getWorkoutCalendar();
     cal[todayKey] = currentDayKey;
@@ -842,15 +1054,16 @@ function saveWorkoutSession() {
 
     const meta = getGlobalMeta();
     meta.sessions = Object.keys(cal).length;
+    meta.lastMachine = lastMachineUpdated;
     saveGlobalMeta(meta);
 
-    alert(`✅ Séance "${workout.shortLabel || workout.title}" validée et colorée sur ton calendrier !`);
+    showToast(`✅ Séance "${workout.shortLabel || workout.title}" sauvegardée !`);
     loadWorkout(currentDayKey);
     updateAllViews();
 }
 
 // =========================================================
-// 5. NAVIGATION & ACCUEIL PERSONNALISABLE
+// 5. NAVIGATION & ACCUEIL (JAUGES MONOCHROMES A3)
 // =========================================================
 function getNutriLogs() {
     const logs = JSON.parse(localStorage.getItem('vtaper_nutri_logs') || '{}');
@@ -896,9 +1109,6 @@ function switchTab(tabName) {
     document.getElementById(`view-${tabName}`).classList.add('active');
     document.getElementById(`tab-${tabName}`).classList.add('active');
 
-    const editBtn = document.getElementById('edit-home-btn');
-    if (editBtn) editBtn.style.display = (tabName === 'home') ? 'inline-block' : 'none';
-
     const homeCfg = getHomeConfig();
     const targets = getNutriTargets();
     const programs = getPrograms();
@@ -907,14 +1117,23 @@ function switchTab(tabName) {
     const titles = {
         home: [homeCfg.title, homeCfg.subtitle],
         gym: [curProg.title, curProg.subtitle],
-        nutri: ["Nutrition & Calendrier", `Cible : ${targets.kcal} kcal · ${targets.prot}g Protéines`],
-        progress: ["Progrès & Courbes", "Évolution par Machine, Synthèse & Poids"]
+        nutri: ["Nutrition", `Objectif : ${targets.kcal} kcal · ${targets.prot}g Protéines`],
+        progress: ["Progrès & Analyse", "Régularité, Courbes par Machine & Poids"]
     };
     document.getElementById('header-title').textContent = titles[tabName][0];
     document.getElementById('header-subtitle').textContent = titles[tabName][1];
 
     updateAllViews();
     window.scrollTo(0, 0);
+}
+
+// Helper A3 : barre sobre qui passe au vert émeraude à 100%
+function updateBarWithGoalColor(barEl, currentVal, targetVal) {
+    if (!barEl) return;
+    const pct = Math.min((currentVal / (targetVal || 1)) * 100, 100);
+    barEl.style.width = `${pct}%`;
+    if (currentVal >= targetVal && targetVal > 0) barEl.classList.add('goal-reached');
+    else barEl.classList.remove('goal-reached');
 }
 
 function updateHomeDashboard() {
@@ -931,10 +1150,15 @@ function updateHomeDashboard() {
 
     document.getElementById('home-kcal').textContent = todayData.kcal;
     document.getElementById('home-kcal-target').textContent = `/ ${targets.kcal} kcal`;
-    document.getElementById('home-kcal-bar').style.width = `${Math.min((todayData.kcal / targets.kcal) * 100, 100)}%`;
+    updateBarWithGoalColor(document.getElementById('home-kcal-bar'), todayData.kcal, targets.kcal);
+
     document.getElementById('home-prot').textContent = `${todayData.prot} / ${targets.prot}g`;
     document.getElementById('home-carbs').textContent = `${todayData.carbs} / ${targets.carbs}g`;
     document.getElementById('home-fats').textContent = `${todayData.fats} / ${targets.fats}g`;
+
+    updateBarWithGoalColor(document.getElementById('home-prot-bar'), todayData.prot, targets.prot);
+    updateBarWithGoalColor(document.getElementById('home-carbs-bar'), todayData.carbs, targets.carbs);
+    updateBarWithGoalColor(document.getElementById('home-fats-bar'), todayData.fats, targets.fats);
 
     document.getElementById('home-water').textContent = `${(todayData.water || 0).toFixed(2)} / ${targets.water.toFixed(1)} L`;
     document.getElementById('home-water-bar').style.width = `${Math.min(((todayData.water || 0) / targets.water) * 100, 100)}%`;
@@ -1064,7 +1288,7 @@ function assignWorkoutToDate(dayKey) {
 }
 
 // =========================================================
-// 6. NUTRITION & PROGRÈS
+// 6. NUTRITION (FAVORIS SÉCURISÉS & MINI-BARRES)
 // =========================================================
 function addWater(liters) {
     const todayKey = getTodayDateKey();
@@ -1082,18 +1306,28 @@ function getFavoriteMeals() {
     return JSON.parse(favs);
 }
 
+function toggleFavEditMode() {
+    isFavEditMode = !isFavEditMode;
+    const btn = document.getElementById('fav-edit-btn');
+    if (btn) {
+        btn.textContent = isFavEditMode ? "✅ Terminer" : "✏️ Modifier";
+        btn.style.color = isFavEditMode ? "var(--accent)" : "var(--text-muted)";
+    }
+    renderFavorites();
+}
+
 function renderFavorites() {
     const favs = getFavoriteMeals();
     const grid = document.getElementById('favorites-grid');
     if (!grid) return;
 
     grid.innerHTML = favs.map((f, idx) => `
-        <div class="fav-card-wrap">
+        <div class="fav-card-wrap ${isFavEditMode ? 'edit-mode' : ''}">
             <button class="preset-btn" onclick="addFavMealByIndex(${idx})">
                 <strong>${f.name}</strong>
                 <span>${f.kcal} kcal · ${f.prot}g P</span>
             </button>
-            <button class="fav-del-x" onclick="deleteFavoriteMeal(${idx})">✕</button>
+            <button class="fav-del-x" onclick="event.stopPropagation(); deleteFavoriteMeal(${idx})">✕</button>
         </div>
     `).join('');
 }
@@ -1105,6 +1339,7 @@ function addFavMealByIndex(idx) {
 
 function deleteFavoriteMeal(idx) {
     const favs = getFavoriteMeals();
+    if (!confirm(`Supprimer "${favs[idx].name}" de tes favoris ?`)) return;
     favs.splice(idx, 1);
     localStorage.setItem('vtaper_fav_meals', JSON.stringify(favs));
     renderFavorites();
@@ -1124,7 +1359,7 @@ function addCustomMeal(saveAsFav) {
     const carbs = parseInt(document.getElementById('custom-carbs').value) || 0;
     const fats = parseInt(document.getElementById('custom-fats').value) || 0;
 
-    if (kcal <= 0 && prot <= 0) return alert("Entre au moins les calories ou les protéines.");
+    if (kcal <= 0 && prot <= 0) return showToast("⚠️ Entre au moins les calories ou les protéines");
 
     if (saveAsFav) {
         const favs = getFavoriteMeals();
@@ -1140,6 +1375,10 @@ function addCustomMeal(saveAsFav) {
     document.getElementById('custom-prot').value = '';
     document.getElementById('custom-carbs').value = '';
     document.getElementById('custom-fats').value = '';
+
+    const drawer = document.getElementById('custom-food-drawer');
+    if (drawer) drawer.classList.remove('open');
+    showToast(saveAsFav ? `⭐ "${name}" ajouté aux favoris et au jour` : `✅ "${name}" ajouté au jour`);
 }
 
 function removeMeal(index) {
@@ -1152,6 +1391,7 @@ function removeMeal(index) {
     dayData.fats = Math.max(0, dayData.fats - m.fats);
     dayData.meals.splice(index, 1);
     saveDayNutri(selectedNutriDateKey, dayData);
+    showToast(`🗑️ "${m.name}" retiré`);
 }
 
 function resetNutriDay() {
@@ -1159,6 +1399,7 @@ function resetNutriDay() {
     const dayData = getDayNutri(selectedNutriDateKey);
     dayData.kcal = 0; dayData.prot = 0; dayData.carbs = 0; dayData.fats = 0; dayData.meals = [];
     saveDayNutri(selectedNutriDateKey, dayData);
+    showToast("🗑️ Repas du jour réinitialisés");
 }
 
 function changeNutriMonth(delta) {
@@ -1222,9 +1463,14 @@ function updateNutriView() {
     document.getElementById('nutri-kcal').textContent = dayData.kcal;
     document.getElementById('nutri-kcal-target').textContent = `/ ${targets.kcal} kcal`;
     document.getElementById('nutri-kcal-bar').style.width = `${Math.min((dayData.kcal / targets.kcal) * 100, 100)}%`;
+
     document.getElementById('nutri-prot').textContent = `${dayData.prot} / ${targets.prot}g`;
     document.getElementById('nutri-carbs').textContent = `${dayData.carbs} / ${targets.carbs}g`;
     document.getElementById('nutri-fats').textContent = `${dayData.fats} / ${targets.fats}g`;
+
+    document.getElementById('nutri-prot-bar').style.width = `${Math.min((dayData.prot / targets.prot) * 100, 100)}%`;
+    document.getElementById('nutri-carbs-bar').style.width = `${Math.min((dayData.carbs / targets.carbs) * 100, 100)}%`;
+    document.getElementById('nutri-fats-bar').style.width = `${Math.min((dayData.fats / targets.fats) * 100, 100)}%`;
 
     const list = document.getElementById('meals-log-list');
     if (!dayData.meals || dayData.meals.length === 0) {
@@ -1243,9 +1489,12 @@ function updateNutriView() {
     `).join('');
 }
 
+// =========================================================
+// 7. PAGE PROGRÈS (NOUVEAU BILAN PERTINENT & PLURIELS PROPRES)
+// =========================================================
 function saveBodyWeight() {
     const val = parseFloat(document.getElementById('weight-input-field').value);
-    if (!val || val < 40 || val > 150) return alert("Entre un poids valide en kg.");
+    if (!val || val < 40 || val > 150) return showToast("⚠️ Entre un poids valide en kg (40 à 150 kg)");
 
     const meta = getGlobalMeta();
     meta.weight = val;
@@ -1257,12 +1506,31 @@ function saveBodyWeight() {
 
     document.getElementById('weight-input-field').value = '';
     updateAllViews();
+    showToast(`⚖️ Poids noté : ${val.toFixed(1)} kg`);
+}
+
+function deleteWeightEntry(idx) {
+    const weightLog = JSON.parse(localStorage.getItem('vtaper_weights') || '[{"date":"Départ","w":70.0}]');
+    if (idx <= 0 || idx >= weightLog.length) return;
+    const entry = weightLog[idx];
+    if (!confirm(`Supprimer la pesée de ${entry.w} kg du ${entry.date} ?`)) return;
+    weightLog.splice(idx, 1);
+    localStorage.setItem('vtaper_weights', JSON.stringify(weightLog));
+
+    const meta = getGlobalMeta();
+    meta.weight = weightLog[weightLog.length - 1].w;
+    saveGlobalMeta(meta);
+
+    updateAllViews();
+    showToast("🗑️ Pesée supprimée");
 }
 
 function updateProgressView() {
     const machineLogs = getMachineLogs();
     const cal = getWorkoutCalendar();
     const meta = getGlobalMeta();
+    const nutriLogs = getNutriLogs();
+    const targets = getNutriTargets();
     const select = document.getElementById('progress-machine-select');
     const prevSelectedKey = select ? select.value : '';
 
@@ -1270,70 +1538,112 @@ function updateProgressView() {
     if (cwDisplay) cwDisplay.textContent = parseFloat(meta.weight || 70.0).toFixed(1);
 
     let recordsHTML = '';
-    let totalTonnage = 0;
-    let totalSessionsLogged = 0;
-    let bestOverall1RM = 0;
     const machineKeysWithData = [];
+    let sumPctGain = 0;
+    let progressedMachinesCount = 0;
+    let bestGainMachine = null;
+    let bestGainVal = -999;
 
     Object.entries(machineLogs).forEach(([mKey, sessionsArr]) => {
         if (!sessionsArr || sessionsArr.length === 0) return;
-        machineKeysWithData.push({ key: mKey, name: sessionsArr[sessionsArr.length - 1].machineName, count: sessionsArr.length });
+        const count = sessionsArr.length;
+        const mName = sessionsArr[count - 1].machineName;
+        machineKeysWithData.push({ key: mKey, name: mName, count: count });
 
         let max1RM = 0;
         sessionsArr.forEach(sess => {
-            totalTonnage += (sess.tonnage || 0);
-            totalSessionsLogged++;
             if (sess.best1RM > max1RM) max1RM = sess.best1RM;
-            if (sess.best1RM > bestOverall1RM) bestOverall1RM = sess.best1RM;
         });
 
         const first1RM = sessionsArr[0].best1RM || 1;
-        const last1RM = sessionsArr[sessionsArr.length - 1].best1RM || 0;
-        const pctGain = sessionsArr.length > 1 ? (((last1RM - first1RM) / first1RM) * 100).toFixed(1) : '0.0';
+        const last1RM = sessionsArr[count - 1].best1RM || 0;
+        const rawGain = count > 1 ? (((last1RM - first1RM) / first1RM) * 100) : 0;
+        const pctGain = rawGain.toFixed(1);
+
+        if (count > 1) {
+            sumPctGain += rawGain;
+            progressedMachinesCount++;
+            if (rawGain > bestGainVal) {
+                bestGainVal = rawGain;
+                bestGainMachine = mName;
+            }
+        }
+
+        const sWord = count > 1 ? 'séances' : 'séance';
 
         recordsHTML += `
             <div class="record-row" onclick="selectMachineInProgress('${mKey}')" style="cursor:pointer;">
-                <div>
-                    <strong>${sessionsArr[sessionsArr.length - 1].machineName}</strong>
-                    <div style="font-size:0.68rem; color:var(--text-muted);">${sessionsArr.length} séance(s) · Évol : ${pctGain >= 0 ? '+' : ''}${pctGain}%</div>
+                <div style="min-width:0;">
+                    <strong style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${mName}</strong>
+                    <div style="font-size:0.68rem; color:var(--text-muted);">${count} ${sWord} · Évol : ${rawGain >= 0 ? '+' : ''}${pctGain}%</div>
                 </div>
-                <span class="record-val">Max 1RM : ${max1RM.toFixed(1)} kg</span>
+                <span class="record-val">1RM : ${max1RM.toFixed(1)} kg</span>
             </div>
         `;
     });
 
+    // Calculs du nouveau Bilan Pertinent (Rythme du mois, Progression moyenne, Top Machine, Régularité Nutri)
+    const now = new Date();
+    const currentMonthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const thisMonthSessions = Object.keys(cal).filter(d => d.startsWith(currentMonthPrefix)).length;
+    const avgPerWeek = (thisMonthSessions / Math.max(1, now.getDate() / 7)).toFixed(1);
+
+    const avgForceGain = progressedMachinesCount > 0 ? (sumPctGain / progressedMachinesCount).toFixed(1) : '0.0';
+
+    const activeNutriDays = Object.values(nutriLogs).filter(d => d && d.kcal > 0);
+    const goalMetDays = activeNutriDays.filter(d => d.kcal >= targets.kcal).length;
+    const avgKcal = activeNutriDays.length > 0
+        ? Math.round(activeNutriDays.reduce((acc, d) => acc + d.kcal, 0) / activeNutriDays.length)
+        : 0;
+
     document.getElementById('muscle-summary-grid').innerHTML = `
         <div class="summary-box">
-            <div class="summary-box-title">Machines Actives</div>
-            <div class="summary-box-val">${machineKeysWithData.length}</div>
-            <div class="summary-box-sub">Enregistrées en base</div>
+            <div class="summary-box-title">📅 Rythme du mois</div>
+            <div class="summary-box-val">${thisMonthSessions} séance${thisMonthSessions > 1 ? 's' : ''}</div>
+            <div class="summary-box-sub">~${avgPerWeek} séance(s) / sem</div>
         </div>
         <div class="summary-box">
-            <div class="summary-box-title">Record 1RM Absolu</div>
-            <div class="summary-box-val">${bestOverall1RM > 0 ? bestOverall1RM.toFixed(1) + ' kg' : '--'}</div>
-            <div class="summary-box-sub">Toutes machines</div>
+            <div class="summary-box-title">📈 Progression Force</div>
+            <div class="summary-box-val">${avgForceGain >= 0 ? '+' : ''}${avgForceGain}%</div>
+            <div class="summary-box-sub">${progressedMachinesCount > 0 ? `Sur ${progressedMachinesCount} machine(s)` : 'Dès 2 séances/machine'}</div>
         </div>
         <div class="summary-box">
-            <div class="summary-box-title">Volume Cumulé</div>
-            <div class="summary-box-val">${(totalTonnage / 1000).toFixed(1)} t</div>
-            <div class="summary-box-sub">${totalSessionsLogged} relevés machines</div>
+            <div class="summary-box-title">🔥 Meilleure Évol.</div>
+            <div class="summary-box-val" style="font-size:0.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${bestGainMachine || (meta.lastMachine || '--')}</div>
+            <div class="summary-box-sub">${bestGainMachine ? `+${bestGainVal.toFixed(1)}% de 1RM` : 'Dernier exo actif'}</div>
         </div>
         <div class="summary-box">
-            <div class="summary-box-title">Assiduité</div>
-            <div class="summary-box-val">${Object.keys(cal).length} j</div>
-            <div class="summary-box-sub">Séances validées</div>
+            <div class="summary-box-title">🥗 Cible Nutrition</div>
+            <div class="summary-box-val">${goalMetDays} j validé${goalMetDays > 1 ? 's' : ''}</div>
+            <div class="summary-box-sub">${avgKcal > 0 ? `Moy. ${avgKcal} kcal/j` : `Cible ${targets.kcal} kcal`}</div>
         </div>
     `;
 
-    document.getElementById('records-list').innerHTML = recordsHTML || `<p style="font-size:0.78rem; color:var(--text-muted);">Valide une séance pour alimenter ta bibliothèque de performances.</p>`;
+    const recordsBox = document.getElementById('records-list');
+    recordsBox.innerHTML = recordsHTML || `<p style="font-size:0.78rem; color:var(--text-muted);">Valide une séance pour alimenter ta bibliothèque de performances.</p>`;
+
+    const toggleBtn = document.getElementById('toggle-records-btn');
+    if (toggleBtn) {
+        const rows = recordsBox.querySelectorAll('.record-row');
+        if (rows.length > 5) {
+            toggleBtn.style.display = 'block';
+            toggleBtn.textContent = showAllRecordsFlag ? '▲ Voir moins' : `▼ Voir tout (${rows.length} records)`;
+            rows.forEach((r, idx) => {
+                r.style.display = (showAllRecordsFlag || idx < 5) ? 'flex' : 'none';
+            });
+        } else {
+            toggleBtn.style.display = 'none';
+        }
+    }
 
     if (select) {
         if (machineKeysWithData.length === 0) {
             select.innerHTML = `<option value="">-- Enregistre une séance pour voir les courbes --</option>`;
         } else {
-            select.innerHTML = machineKeysWithData.map(m =>
-                `<option value="${m.key}" ${m.key === prevSelectedKey ? 'selected' : ''}>📈 ${m.name} (${m.count} séances)</option>`
-            ).join('');
+            select.innerHTML = machineKeysWithData.map(m => {
+                const sWord = m.count > 1 ? 'séances' : 'séance';
+                return `<option value="${m.key}" ${m.key === prevSelectedKey ? 'selected' : ''}>📈 ${m.name} (${m.count} ${sWord})</option>`;
+            }).join('');
         }
         renderMachineProgressChart();
     }
@@ -1360,25 +1670,28 @@ function renderMachineProgressChart() {
     const sessions = logs[mKey] || [];
 
     if (sessions.length === 0) {
-        chartBox.innerHTML = `<p style="font-size:0.78rem; color:var(--text-muted);">Aucune séance enregistrée sur cette machine.</p>`;
+        chartBox.classList.add('empty-chart');
+        chartBox.innerHTML = `<p style="font-size:0.76rem; color:var(--text-muted);">Aucune séance enregistrée sur cette machine.</p>`;
         logBox.innerHTML = '';
         return;
     }
 
     logBox.innerHTML = sessions.slice(-5).reverse().map(s => {
         const setsStr = s.sets.map(x => `${x.weight}kg×${x.reps}`).join(' | ');
-        return `<div style="font-size:0.74rem; background:var(--bg-elevated); padding:6px 10px; border-radius:8px; display:flex; justify-content:space-between;">
+        return `<div style="font-size:0.74rem; background:var(--bg-elevated); padding:6px 10px; border-radius:8px; display:flex; justify-content:space-between; gap:8px;">
                     <span><b>${s.displayDate}</b> : ${setsStr}</span>
-                    <strong style="color:var(--accent);">1RM ${s.best1RM}kg</strong>
+                    <strong style="color:var(--accent); white-space:nowrap;">1RM : ${s.best1RM} kg</strong>
                 </div>`;
     }).join('');
 
     const recent = sessions.slice(-8);
     if (recent.length < 2) {
-        chartBox.innerHTML = `<p style="font-size:0.78rem; color:var(--text-muted);">1 séance enregistrée (1RM : <b>${recent[0].best1RM} kg</b> le ${recent[0].displayDate}). Dès ta 2e séance sur cette machine, ta courbe s'affichera ici !</p>`;
+        chartBox.classList.add('empty-chart');
+        chartBox.innerHTML = `<p style="font-size:0.76rem; color:var(--text-muted); text-align:center;">1 séance enregistrée (1RM : <b>${recent[0].best1RM} kg</b> le ${recent[0].displayDate}). La courbe s'affichera dès ta 2e séance !</p>`;
         return;
     }
 
+    chartBox.classList.remove('empty-chart');
     const vals = recent.map(d => d.best1RM);
     const minV = Math.min(...vals) - 2;
     const maxV = Math.max(...vals) + 2;
@@ -1408,16 +1721,19 @@ function renderMachineProgressChart() {
 function renderBodyWeightChart() {
     const weightLog = JSON.parse(localStorage.getItem('vtaper_weights') || '[{"date":"Départ","w":70.0}]');
     const latestW = weightLog[weightLog.length - 1].w;
-    const diff = (latestW - 70.0).toFixed(1);
+    const startW = weightLog[0].w;
+    const diff = (latestW - startW).toFixed(1);
     document.getElementById('weight-diff-badge').textContent = `${diff >= 0 ? '+' : ''}${diff} kg vs départ`;
 
     const chartBox = document.getElementById('weight-chart-box');
     const recent = weightLog.slice(-8);
     if (recent.length < 2) {
-        chartBox.innerHTML = `<p style="font-size:0.78rem; color:var(--text-muted);">Entre une pesée pour tracer ta courbe vers 80 kg.</p>`;
+        chartBox.classList.add('empty-chart');
+        chartBox.innerHTML = `<p style="font-size:0.76rem; color:var(--text-muted);">Entre une pesée pour tracer ta courbe vers 80 kg.</p>`;
         return;
     }
 
+    chartBox.classList.remove('empty-chart');
     const minW = Math.min(...recent.map(d => d.w)) - 0.5;
     const maxW = Math.max(...recent.map(d => d.w)) + 0.5;
     const width = 300, height = 110;
@@ -1440,15 +1756,62 @@ function renderBodyWeightChart() {
             ${circles}
         </svg>
     `;
+
+    // Historique des pesées avec suppression d'erreur (E1)
+    const pillsBox = document.getElementById('weight-history-pills');
+    if (pillsBox) {
+        pillsBox.innerHTML = weightLog.slice(-10).reverse().map((entry, idx) => {
+            const realIdx = weightLog.length - 1 - idx;
+            return `<span style="background:var(--bg-elevated); padding:4px 10px; border-radius:99px; font-size:0.72rem; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                ${entry.date}: ${entry.w}kg
+                ${realIdx > 0 ? `<button onclick="deleteWeightEntry(${realIdx})" style="background:none; border:none; color:#dc2626; font-weight:800; cursor:pointer; font-size:0.7rem;">✕</button>` : ''}
+            </span>`;
+        }).join('');
+    }
 }
 
 // =========================================================
-// 7. CHRONOMÈTRE & BACKUP V5.2
+// 8. CHRONOMÈTRE, BACKUP & SYNCHRONISATION API GITHUB
 // =========================================================
 function toggleSet(exoId, setIndex, restSeconds) {
     const row = document.getElementById(`row_${exoId}_${setIndex}`);
     row.classList.toggle('done');
-    if (row.classList.contains('done')) startTimer(restSeconds);
+
+    if (row.classList.contains('done')) {
+        startTimer(restSeconds);
+        if (setIndex === 0) {
+            const warmupBox = document.getElementById(`warmup_${exoId}`);
+            if (warmupBox) warmupBox.style.display = 'none';
+        }
+    }
+
+    const programs = getPrograms();
+    const workout = programs[currentDayKey];
+    const exoIdx = workout.exercises.findIndex(e => e.id === exoId);
+    const exo = workout.exercises[exoIdx];
+    if (!exo) return;
+
+    let doneCount = 0;
+    for (let i = 0; i < exo.sets; i++) {
+        const r = document.getElementById(`row_${exoId}_${i}`);
+        if (r && r.classList.contains('done')) doneCount++;
+    }
+
+    const pill = document.getElementById(`progress_pill_${exoId}`);
+    if (pill) pill.textContent = `${doneCount}/${exo.sets}`;
+
+    const card = document.getElementById(`card_${exoId}`);
+    const circle = document.getElementById(`circle_${exoId}`);
+    if (doneCount === exo.sets) {
+        if (card) card.classList.add('all-sets-done');
+        if (circle) circle.textContent = '✓';
+        if (exoIdx + 1 < workout.exercises.length) {
+            setTimeout(() => toggleExoAccordion(workout.exercises[exoIdx + 1].id), 400);
+        }
+    } else {
+        if (card) card.classList.remove('all-sets-done');
+        if (circle) circle.textContent = exoIdx + 1;
+    }
 }
 
 function startTimer(seconds) {
@@ -1456,6 +1819,7 @@ function startTimer(seconds) {
     timerEndTime = Date.now() + (seconds * 1000);
     timeLeft = seconds;
     document.getElementById('timer-box').className = 'timer-running';
+    document.getElementById('timer-wrapper').classList.add('active-timer');
     updateTimerDisplay();
 
     timerInterval = setInterval(() => {
@@ -1491,16 +1855,15 @@ function resetTimer() {
     clearInterval(timerInterval);
     timeLeft = 0; timerEndTime = 0;
     document.getElementById('timer-box').className = 'timer-idle';
+    document.getElementById('timer-wrapper').classList.remove('active-timer');
     document.getElementById('timer-display').textContent = "00:00";
 }
 
-// =========================================================
-// 8. BACKUP PRESSE-PAPIER & SYNCHRONISATION API GITHUB (V5.3)
-// =========================================================
 function buildFullBackupPayload() {
     return {
         updatedAt: new Date().toLocaleString('fr-FR'),
         homeConfig: getHomeConfig(),
+        nutriOrder: getNutriOrder(),
         nutriTargets: getNutriTargets(),
         programsV5: getPrograms(),
         workoutCalendarV5: getWorkoutCalendar(),
@@ -1515,6 +1878,7 @@ function buildFullBackupPayload() {
 
 function restoreFromPayload(parsed) {
     if (parsed.homeConfig) localStorage.setItem('vtaper_home_config', JSON.stringify(parsed.homeConfig));
+    if (parsed.nutriOrder) localStorage.setItem('vtaper_nutri_order_v6', JSON.stringify(parsed.nutriOrder));
     if (parsed.nutriTargets) localStorage.setItem('vtaper_nutri_targets', JSON.stringify(parsed.nutriTargets));
     if (parsed.programsV5) localStorage.setItem('vtaper_programs_v5', JSON.stringify(parsed.programsV5));
     if (parsed.workoutCalendarV5) localStorage.setItem('vtaper_workout_calendar_v5', JSON.stringify(parsed.workoutCalendarV5));
@@ -1527,6 +1891,7 @@ function restoreFromPayload(parsed) {
 
     initV5Database();
     applyHomeLayoutOrder();
+    applyNutriLayoutOrder();
     renderDaySelectorBar();
     loadWorkout(currentDayKey);
     updateAllViews();
@@ -1535,7 +1900,7 @@ function restoreFromPayload(parsed) {
 function exportData() {
     const fullBackup = buildFullBackupPayload();
     navigator.clipboard.writeText(JSON.stringify(fullBackup));
-    alert("📋 Backup V5.3 complet copié dans le presse-papier !");
+    showToast("📋 Sauvegarde JSON copiée dans le presse-papier !");
 }
 
 function importData() {
@@ -1544,19 +1909,18 @@ function importData() {
     try {
         const parsed = JSON.parse(input);
         restoreFromPayload(parsed);
-        alert("✅ Base de données restaurée avec succès !");
+        showToast("✅ Base de données restaurée avec succès !");
     } catch (e) {
-        alert("⚠️ Format JSON invalide.");
+        showToast("⚠️ Format JSON invalide");
     }
 }
 
-// CONFIGURATION & API GITHUB (ÉCRASE backup.json AVEC HISTORIQUE GIT)
 function getGithubConfig() {
     return JSON.parse(localStorage.getItem('vtaper_gh_config') || '{"owner":"","repo":"","token":""}');
 }
 
 function toggleGithubConfigDrawer() {
-    const drawer = document.getElementById('github-config-drawer');
+    const drawer = document.getElementById('backup-main-drawer');
     if (!drawer) return;
     const cfg = getGithubConfig();
     document.getElementById('gh-owner').value = cfg.owner || '';
@@ -1572,11 +1936,10 @@ function saveGithubConfig() {
         token: document.getElementById('gh-token').value.trim()
     };
     localStorage.setItem('vtaper_gh_config', JSON.stringify(cfg));
-    document.getElementById('github-config-drawer').classList.remove('open');
-    alert("✅ Paramètres GitHub enregistrés dans ton téléphone !");
+    document.getElementById('backup-main-drawer').classList.remove('open');
+    showToast("✅ Paramètres GitHub enregistrés");
 }
 
-// Encode l'UTF-8 proprement en Base64 pour l'API GitHub
 function utf8ToBase64(str) {
     return btoa(unescape(encodeURIComponent(str)));
 }
@@ -1589,7 +1952,7 @@ async function syncToGitHub() {
     const cfg = getGithubConfig();
     if (!cfg.owner || !cfg.repo || !cfg.token) {
         toggleGithubConfigDrawer();
-        return alert("Configure d'abord ton pseudo, ton dépôt et ton Token GitHub.");
+        return showToast("⚠️ Configure d'abord tes accès GitHub");
     }
 
     const statusEl = document.getElementById('github-sync-status');
@@ -1602,7 +1965,6 @@ async function syncToGitHub() {
     };
 
     try {
-        // 1. Vérifier si backup.json existe déjà pour récupérer son SHA (obligatoire pour l'écraser proprement)
         let existingSha = null;
         const getRes = await fetch(apiUrl, { headers });
         if (getRes.ok) {
@@ -1610,10 +1972,9 @@ async function syncToGitHub() {
             existingSha = fileData.sha;
         }
 
-        // 2. Préparer le JSON formaté et l'envoyer (crée un commit sur GitHub)
         const payloadStr = JSON.stringify(buildFullBackupPayload(), null, 2);
         const bodyObj = {
-            message: `📲 Sync V-Taper (${new Date().toLocaleDateString('fr-FR')})`,
+            message: `📲 Sync Gym-Tracker (${new Date().toLocaleDateString('fr-FR')})`,
             content: utf8ToBase64(payloadStr)
         };
         if (existingSha) bodyObj.sha = existingSha;
@@ -1628,10 +1989,10 @@ async function syncToGitHub() {
 
         const nowTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         statusEl.textContent = `✅ Synchronisé sur GitHub (backup.json) à ${nowTime}`;
-        alert("✅ Sauvegarde envoyée sur GitHub avec succès !");
+        showToast("✅ Sauvegarde envoyée sur GitHub !");
     } catch (err) {
         statusEl.textContent = "❌ Échec de la synchronisation (vérifie ton Token ou le nom du Repo).";
-        alert("Erreur lors de l'envoi vers GitHub : " + err.message);
+        showToast("❌ Erreur GitHub : " + err.message);
     }
 }
 
@@ -1639,7 +2000,7 @@ async function pullFromGitHub() {
     const cfg = getGithubConfig();
     if (!cfg.owner || !cfg.repo || !cfg.token) {
         toggleGithubConfigDrawer();
-        return alert("Configure d'abord tes accès GitHub.");
+        return showToast("⚠️ Configure d'abord tes accès GitHub");
     }
     if (!confirm("Remplacer les données de ce téléphone par la sauvegarde backup.json stockée sur ton GitHub ?")) return;
 
@@ -1662,9 +2023,9 @@ async function pullFromGitHub() {
 
         restoreFromPayload(parsed);
         statusEl.textContent = `✅ Données restaurées depuis GitHub (${parsed.updatedAt || 'OK'})`;
-        alert("✅ Toutes tes données ont été chargées depuis GitHub !");
+        showToast("✅ Toutes tes données ont été chargées depuis GitHub !");
     } catch (err) {
         statusEl.textContent = "❌ Erreur de chargement GitHub.";
-        alert("Impossible de charger depuis GitHub : " + err.message);
+        showToast("❌ Erreur chargement GitHub : " + err.message);
     }
 }
