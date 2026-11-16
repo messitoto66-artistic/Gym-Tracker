@@ -1,6 +1,6 @@
 {
   "version": "4.5",
-  "updatedAt": "15/11/2026 23:01:18",
+  "updatedAt": "16/11/2026 22:33:15",
   "homeConfig": {
     "title": "Accueil",
     "subtitle": "Objectif 80 kg & Calisthénie",
@@ -48,7 +48,7 @@
             "Développé incliné 30° haltères",
             "Incliné barre / Smith machine"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 1
         },
         {
           "id": "push_2",
@@ -63,7 +63,7 @@
             "Dips lestés",
             "Presse à pecs déclinée / Pompes déficit"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 1
         },
         {
           "id": "push_3",
@@ -76,9 +76,10 @@
           "hasWarmupRamp": false,
           "variants": [
             "Écartés poulie hauteur d'épaule",
-            "Pec Deck machine"
+            "Pec Deck machine",
+            "Pompes normales"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 2
         },
         {
           "id": "push_4",
@@ -93,7 +94,7 @@
             "Développé militaire haltères",
             "Machine Shoulder Press"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 1
         },
         {
           "id": "push_5",
@@ -511,7 +512,8 @@
     "2026-10-23": "legs",
     "2026-10-26": "push",
     "2026-10-28": "pull",
-    "2026-10-30": "legs"
+    "2026-10-30": "legs",
+    "2026-11-16": "push"
   },
   "machineLibrary": {
     "developpe_incline_30_halteres": {
@@ -678,9 +680,164 @@
     },
     "l_sit_au_sol": {
       "name": "L-Sit au sol"
+    },
+    "pompes_normales": {
+      "name": "Pompes normales",
+      "note": ""
     }
   },
-  "machineLogs": {},
+  "machineLogs": {
+    "incline_barre_smith_machine": [
+      {
+        "dateKey": "2026-11-16",
+        "displayDate": "16/11",
+        "machineName": "Incliné barre / Smith machine",
+        "sets": [
+          {
+            "weight": "60",
+            "reps": "8"
+          },
+          {
+            "weight": "60",
+            "reps": "8"
+          },
+          {
+            "weight": "60",
+            "reps": "8"
+          },
+          {
+            "weight": "60",
+            "reps": "8"
+          }
+        ],
+        "best1RM": 76,
+        "tonnage": 1920
+      }
+    ],
+    "presse_a_pecs_declinee_pompes_deficit": [
+      {
+        "dateKey": "2026-11-16",
+        "displayDate": "16/11",
+        "machineName": "Presse à pecs déclinée / Pompes déficit",
+        "sets": [
+          {
+            "weight": "30",
+            "reps": "10"
+          },
+          {
+            "weight": "30",
+            "reps": "10"
+          },
+          {
+            "weight": "30",
+            "reps": "10"
+          },
+          {
+            "weight": "30",
+            "reps": "10"
+          }
+        ],
+        "best1RM": 40,
+        "tonnage": 1200
+      }
+    ],
+    "pompes_normales": [
+      {
+        "dateKey": "2026-11-16",
+        "displayDate": "16/11",
+        "machineName": "Pompes normales",
+        "sets": [
+          {
+            "weight": "25",
+            "reps": "15"
+          },
+          {
+            "weight": "25",
+            "reps": "15"
+          },
+          {
+            "weight": "25",
+            "reps": "15"
+          }
+        ],
+        "best1RM": 37.5,
+        "tonnage": 1125
+      }
+    ],
+    "machine_shoulder_press": [
+      {
+        "dateKey": "2026-11-16",
+        "displayDate": "16/11",
+        "machineName": "Machine Shoulder Press",
+        "sets": [
+          {
+            "weight": "30",
+            "reps": "10"
+          },
+          {
+            "weight": "30",
+            "reps": "10"
+          },
+          {
+            "weight": "30",
+            "reps": "10"
+          }
+        ],
+        "best1RM": 40,
+        "tonnage": 900
+      }
+    ],
+    "elevations_laterales_poulie_basse": [
+      {
+        "dateKey": "2026-11-16",
+        "displayDate": "16/11",
+        "machineName": "Élévations latérales poulie basse",
+        "sets": [
+          {
+            "weight": "5",
+            "reps": "12"
+          },
+          {
+            "weight": "5",
+            "reps": "12"
+          },
+          {
+            "weight": "5",
+            "reps": "12"
+          },
+          {
+            "weight": "5",
+            "reps": "12"
+          }
+        ],
+        "best1RM": 7,
+        "tonnage": 240
+      }
+    ],
+    "extensions_triceps_poulie_haute": [
+      {
+        "dateKey": "2026-11-16",
+        "displayDate": "16/11",
+        "machineName": "Extensions triceps poulie haute",
+        "sets": [
+          {
+            "weight": "20",
+            "reps": "12"
+          },
+          {
+            "weight": "20",
+            "reps": "12"
+          },
+          {
+            "weight": "20",
+            "reps": "12"
+          }
+        ],
+        "best1RM": 28,
+        "tonnage": 720
+      }
+    ]
+  },
   "nutriLogs": {
     "2026-11-12": {
       "water": 1.25,
@@ -742,6 +899,14 @@
       "carbs": 0,
       "fats": 0,
       "meals": []
+    },
+    "2026-11-16": {
+      "water": 0,
+      "kcal": 0,
+      "prot": 0,
+      "carbs": 0,
+      "fats": 0,
+      "meals": []
     }
   },
   "favMeals": [
@@ -782,6 +947,7 @@
   ],
   "meta": {
     "weight": 67,
-    "sessions": 0
+    "sessions": 22,
+    "lastMachine": "Extensions triceps poulie haute"
   }
 }
