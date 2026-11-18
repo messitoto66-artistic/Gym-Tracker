@@ -1,6 +1,6 @@
 {
   "version": "4.5",
-  "updatedAt": "17/11/2026 22:59:53",
+  "updatedAt": "18/11/2026 16:04:21",
   "homeConfig": {
     "title": "Accueil",
     "subtitle": "Objectif 80 kg & Calisthénie",
@@ -247,7 +247,7 @@
             "Presse à cuisses 45°",
             "Hack Squat / Pendulum Squat"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 1
         },
         {
           "id": "legs_2",
@@ -260,9 +260,10 @@
           "hasWarmupRamp": false,
           "variants": [
             "Soulevé de terre roumain (RDL)",
-            "Hip Thrust lourd"
+            "Hip Thrust lourd",
+            "RDL halteres"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 2
         },
         {
           "id": "legs_3",
@@ -305,9 +306,10 @@
           "hasWarmupRamp": false,
           "variants": [
             "Mollets debout machine",
-            "Mollets à la presse"
+            "Mollets à la presse",
+            "Mollets assis"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 2
         },
         {
           "id": "legs_6",
@@ -320,9 +322,10 @@
           "hasWarmupRamp": false,
           "variants": [
             "Relevés de jambes suspendu",
-            "Crunch poulie haute"
+            "Crunch poulie haute",
+            "Abdos machine"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 2
         }
       ]
     },
@@ -516,7 +519,8 @@
     "2026-10-28": "pull",
     "2026-10-30": "legs",
     "2026-11-16": "push",
-    "2026-11-17": "pull"
+    "2026-11-17": "pull",
+    "2026-11-18": "legs"
   },
   "machineLibrary": {
     "developpe_incline_30_halteres": {
@@ -715,6 +719,18 @@
     "biceps_halteres": {
       "name": "Biceps halteres",
       "note": ""
+    },
+    "rdl_halteres": {
+      "name": "RDL halteres",
+      "note": ""
+    },
+    "mollets_assis": {
+      "name": "Mollets assis",
+      "note": ""
+    },
+    "abdos_machine": {
+      "name": "Abdos machine",
+      "note": "Machine qui fait aussi les obliques"
     }
   },
   "machineLogs": {
@@ -2479,6 +2495,27 @@
         "oneRM": 53.3,
         "best1RM": 53.3,
         "tonnage": 1120
+      },
+      {
+        "dateKey": "2026-11-18",
+        "displayDate": "18/11",
+        "machineName": "Leg curl assis ou allongé",
+        "sets": [
+          {
+            "weight": "40",
+            "reps": "10"
+          },
+          {
+            "weight": "40",
+            "reps": "10"
+          },
+          {
+            "weight": "40",
+            "reps": "7"
+          }
+        ],
+        "best1RM": 53.3,
+        "tonnage": 1080
       }
     ],
     "fentes_bulgares_halteres": [
@@ -3094,6 +3131,31 @@
         "oneRM": 140,
         "best1RM": 140,
         "tonnage": 4400
+      },
+      {
+        "dateKey": "2026-11-18",
+        "displayDate": "18/11",
+        "machineName": "Hack Squat / Pendulum Squat",
+        "sets": [
+          {
+            "weight": "102",
+            "reps": "8"
+          },
+          {
+            "weight": "102",
+            "reps": "8"
+          },
+          {
+            "weight": "102",
+            "reps": "8"
+          },
+          {
+            "weight": "102",
+            "reps": "8"
+          }
+        ],
+        "best1RM": 129.2,
+        "tonnage": 3264
       }
     ],
     "developpe_couche_0_halteres": [
@@ -3783,6 +3845,27 @@
         "oneRM": 56,
         "best1RM": 56,
         "tonnage": 1440
+      },
+      {
+        "dateKey": "2026-11-18",
+        "displayDate": "18/11",
+        "machineName": "Leg extension machine",
+        "sets": [
+          {
+            "weight": "40",
+            "reps": "15"
+          },
+          {
+            "weight": "40",
+            "reps": "15"
+          },
+          {
+            "weight": "40",
+            "reps": "15"
+          }
+        ],
+        "best1RM": 60,
+        "tonnage": 1800
       }
     ],
     "souleve_de_terre_conventionnel": [
@@ -4111,6 +4194,83 @@
         "best1RM": 16.8,
         "tonnage": 384
       }
+    ],
+    "rdl_halteres": [
+      {
+        "dateKey": "2026-11-18",
+        "displayDate": "18/11",
+        "machineName": "RDL halteres",
+        "sets": [
+          {
+            "weight": "20",
+            "reps": "10"
+          },
+          {
+            "weight": "26",
+            "reps": "10"
+          },
+          {
+            "weight": "30",
+            "reps": "10"
+          }
+        ],
+        "best1RM": 40,
+        "tonnage": 760
+      }
+    ],
+    "mollets_assis": [
+      {
+        "dateKey": "2026-11-18",
+        "displayDate": "18/11",
+        "machineName": "Mollets assis",
+        "sets": [
+          {
+            "weight": "30",
+            "reps": "12"
+          },
+          {
+            "weight": "30",
+            "reps": "12"
+          },
+          {
+            "weight": "30",
+            "reps": "12"
+          },
+          {
+            "weight": "30",
+            "reps": "12"
+          }
+        ],
+        "best1RM": 42,
+        "tonnage": 1440
+      }
+    ],
+    "abdos_machine": [
+      {
+        "dateKey": "2026-11-18",
+        "displayDate": "18/11",
+        "machineName": "Abdos machine",
+        "sets": [
+          {
+            "weight": "15",
+            "reps": "15"
+          },
+          {
+            "weight": "15",
+            "reps": "15"
+          },
+          {
+            "weight": "15",
+            "reps": "12"
+          },
+          {
+            "weight": "15",
+            "reps": "12"
+          }
+        ],
+        "best1RM": 22.5,
+        "tonnage": 810
+      }
     ]
   },
   "nutriLogs": {
@@ -4204,6 +4364,14 @@
       "carbs": 0,
       "fats": 0,
       "meals": []
+    },
+    "2026-11-18": {
+      "water": 0,
+      "kcal": 0,
+      "prot": 0,
+      "carbs": 0,
+      "fats": 0,
+      "meals": []
     }
   },
   "favMeals": [
@@ -4244,7 +4412,7 @@
   ],
   "meta": {
     "weight": 67,
-    "sessions": 23,
-    "lastMachine": "Banc à lombaires lesté"
+    "sessions": 24,
+    "lastMachine": "Abdos machine"
   }
 }
