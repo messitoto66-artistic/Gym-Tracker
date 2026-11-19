@@ -1,12 +1,12 @@
 {
   "version": "4.5",
-  "updatedAt": "18/11/2026 16:04:21",
+  "updatedAt": "19/11/2026 14:41:58",
   "homeConfig": {
     "title": "Accueil",
     "subtitle": "Objectif 80 kg & Calisthénie",
     "order": [
-      "workout",
       "calendar",
+      "workout",
       "nutri"
     ]
   },
@@ -48,7 +48,7 @@
             "Développé incliné 30° haltères",
             "Incliné barre / Smith machine"
           ],
-          "activeVariantIndex": 1
+          "activeVariantIndex": 0
         },
         {
           "id": "push_2",
@@ -79,7 +79,7 @@
             "Pec Deck machine",
             "Pompes normales"
           ],
-          "activeVariantIndex": 2
+          "activeVariantIndex": 1
         },
         {
           "id": "push_4",
@@ -94,7 +94,7 @@
             "Développé militaire haltères",
             "Machine Shoulder Press"
           ],
-          "activeVariantIndex": 1
+          "activeVariantIndex": 0
         },
         {
           "id": "push_5",
@@ -122,9 +122,10 @@
           "hasWarmupRamp": false,
           "variants": [
             "Extensions triceps poulie haute",
-            "Barre au front EZ"
+            "Barre au front EZ",
+            "Triceps poulie basse"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 2
         }
       ]
     },
@@ -520,7 +521,8 @@
     "2026-10-30": "legs",
     "2026-11-16": "push",
     "2026-11-17": "pull",
-    "2026-11-18": "legs"
+    "2026-11-18": "legs",
+    "2026-11-19": "push"
   },
   "machineLibrary": {
     "developpe_incline_30_halteres": {
@@ -548,7 +550,8 @@
       "name": "Machine Shoulder Press"
     },
     "elevations_laterales_poulie_basse": {
-      "name": "Élévations latérales poulie basse"
+      "name": "Élévations latérales poulie basse",
+      "note": "Poulie avec poids divisé par deux"
     },
     "halteres_machine_laterale": {
       "name": "Haltères / Machine latérale"
@@ -731,6 +734,10 @@
     "abdos_machine": {
       "name": "Abdos machine",
       "note": "Machine qui fait aussi les obliques"
+    },
+    "triceps_poulie_basse": {
+      "name": "Triceps poulie basse",
+      "note": "Force / 2 a cause des poulies"
     }
   },
   "machineLogs": {
@@ -842,6 +849,31 @@
         ],
         "best1RM": 40,
         "tonnage": 1200
+      },
+      {
+        "dateKey": "2026-11-19",
+        "displayDate": "19/11",
+        "machineName": "Presse à pecs déclinée / Pompes déficit",
+        "sets": [
+          {
+            "weight": "35",
+            "reps": "8"
+          },
+          {
+            "weight": "35",
+            "reps": "8"
+          },
+          {
+            "weight": "32",
+            "reps": "8"
+          },
+          {
+            "weight": "32",
+            "reps": "6"
+          }
+        ],
+        "best1RM": 44.3,
+        "tonnage": 1008
       }
     ],
     "pompes_normales": [
@@ -943,6 +975,31 @@
         ],
         "best1RM": 7,
         "tonnage": 240
+      },
+      {
+        "dateKey": "2026-11-19",
+        "displayDate": "19/11",
+        "machineName": "Élévations latérales poulie basse",
+        "sets": [
+          {
+            "weight": "5",
+            "reps": "12"
+          },
+          {
+            "weight": "5",
+            "reps": "12"
+          },
+          {
+            "weight": "5",
+            "reps": "10"
+          },
+          {
+            "weight": "5",
+            "reps": "9"
+          }
+        ],
+        "best1RM": 7,
+        "tonnage": 215
       }
     ],
     "extensions_triceps_poulie_haute": [
@@ -1496,6 +1553,27 @@
         "oneRM": 29.3,
         "best1RM": 29.3,
         "tonnage": 616
+      },
+      {
+        "dateKey": "2026-11-19",
+        "displayDate": "19/11",
+        "machineName": "Développé militaire haltères",
+        "sets": [
+          {
+            "weight": "18",
+            "reps": "6"
+          },
+          {
+            "weight": "14",
+            "reps": "9"
+          },
+          {
+            "weight": "14",
+            "reps": "8"
+          }
+        ],
+        "best1RM": 21.6,
+        "tonnage": 346
       }
     ],
     "presse_a_cuisses_45": [
@@ -2052,6 +2130,31 @@
         "oneRM": 34.7,
         "best1RM": 34.7,
         "tonnage": 936
+      },
+      {
+        "dateKey": "2026-11-19",
+        "displayDate": "19/11",
+        "machineName": "Développé incliné 30° haltères",
+        "sets": [
+          {
+            "weight": "30",
+            "reps": "8"
+          },
+          {
+            "weight": "30",
+            "reps": "8"
+          },
+          {
+            "weight": "30",
+            "reps": "7"
+          },
+          {
+            "weight": "30",
+            "reps": "7"
+          }
+        ],
+        "best1RM": 38,
+        "tonnage": 900
       }
     ],
     "rdl_unilateral_haltere": [
@@ -3500,6 +3603,27 @@
         "oneRM": 28,
         "best1RM": 28,
         "tonnage": 680
+      },
+      {
+        "dateKey": "2026-11-19",
+        "displayDate": "19/11",
+        "machineName": "Pec Deck machine",
+        "sets": [
+          {
+            "weight": "15",
+            "reps": "12"
+          },
+          {
+            "weight": "15",
+            "reps": "12"
+          },
+          {
+            "weight": "15",
+            "reps": "12"
+          }
+        ],
+        "best1RM": 21,
+        "tonnage": 540
       }
     ],
     "mollets_debout_machine": [
@@ -4271,6 +4395,29 @@
         "best1RM": 22.5,
         "tonnage": 810
       }
+    ],
+    "triceps_poulie_basse": [
+      {
+        "dateKey": "2026-11-19",
+        "displayDate": "19/11",
+        "machineName": "Triceps poulie basse",
+        "sets": [
+          {
+            "weight": "12",
+            "reps": "12"
+          },
+          {
+            "weight": "12",
+            "reps": "12"
+          },
+          {
+            "weight": "12",
+            "reps": "12"
+          }
+        ],
+        "best1RM": 16.8,
+        "tonnage": 432
+      }
     ]
   },
   "nutriLogs": {
@@ -4366,6 +4513,14 @@
       "meals": []
     },
     "2026-11-18": {
+      "water": 2.5,
+      "kcal": 0,
+      "prot": 0,
+      "carbs": 0,
+      "fats": 0,
+      "meals": []
+    },
+    "2026-11-19": {
       "water": 0,
       "kcal": 0,
       "prot": 0,
@@ -4412,7 +4567,7 @@
   ],
   "meta": {
     "weight": 67,
-    "sessions": 24,
-    "lastMachine": "Abdos machine"
+    "sessions": 25,
+    "lastMachine": "Triceps poulie basse"
   }
 }
