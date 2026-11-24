@@ -8,27 +8,39 @@
     <title>Gym-Tracker</title>
     <link rel="icon" type="image/svg+xml" href="./icon.svg">
     <link rel="apple-touch-icon" href="./icon.svg">
+    
+    <!-- Google Fonts Manrope & DM Sans (V5.0 Refonte Épurée) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+    
+    <!-- Bibliothèque d'icônes Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-    <!-- NOTIFICATION TOAST MODERNE (Remplace les alert() iOS - A6) -->
-    <div id="toast-notification" class="toast-pill">✅ Action enregistrée</div>
+    <!-- NOTIFICATION TOAST MODERNE (V5.0) -->
+    <div id="toast-notification" class="toast-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span>Action enregistrée</span>
+    </div>
 
-    <!-- HEADER GLOBAL FIXE (Chrono intelligent, Dark Mode & Sourdine - V4.1) -->
+    <!-- HEADER GLOBAL FIXE ÉPURÉ -->
     <header class="app-header">
         <div style="min-width: 0; padding-right: 8px;">
-            <h1 id="header-title">Tableau de bord</h1>
-            <p id="header-subtitle">Objectif 80 kg · V-Taper & Calisthénie</p>
+            <h1 id="header-title" class="brand-title">Gaël<span class="brand-dot">.</span></h1>
+            <p id="header-subtitle" class="brand-sub">Objectif 80 kg · Calisthénie</p>
         </div>
         <div class="header-right-zone">
-            <button class="icon-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Basculer Mode Sombre/Clair">🌓</button>
-            <button class="icon-toggle-btn" id="sound-toggle-btn" onclick="toggleSound()" title="Activer/Couper les bips">🔊</button>
+            <button class="icon-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Basculer Mode Sombre/Clair" aria-label="Thème"></button>
+            <button class="icon-toggle-btn" id="sound-toggle-btn" onclick="toggleSound()" title="Activer/Couper les bips" aria-label="Son"></button>
             <div class="timer-wrapper" id="timer-wrapper">
                 <button class="timer-adj-btn timer-extra" onclick="adjustTimer(-30)">-30s</button>
                 <div id="timer-box" class="timer-idle" onclick="resetTimer()">
-                    <span id="timer-display">⏱️ 00:00</span>
+                    <span id="timer-display">⏱ 00:00</span>
                 </div>
                 <button class="timer-adj-btn timer-extra" onclick="adjustTimer(30)">+30s</button>
             </div>
@@ -36,15 +48,39 @@
     </header>
 
     <!-- =========================================================
-         VUE 1 : ACCUEIL (BORDERLESS, SÉLECTEUR < > & MONOCHROME)
+         VUE 1 : ACCUEIL (REFONTE ÉPURÉE)
     ========================================================== -->
     <section id="view-home" class="app-view active">
 
+        <div class="overline-date" id="home-date-banner">Lundi 23 novembre · Semaine 48</div>
+        <h2 class="hero-greeting">Bonjour, Gaël.</h2>
+
         <div id="home-cards-container" class="cards-stack">
 
-            <!-- BLOC 1 : Calendrier d'Assiduité -->
-            <div class="dash-card" id="home-block-calendar" data-block-id="calendar">
-                <div class="dash-card-header">
+            <!-- BLOC 1 : Entraînement avec Hero Card "Séance du jour" -->
+            <div class="home-block-group" id="home-block-workout" data-block-id="workout">
+                <div class="block-section-header">
+                    <span class="hero-pill">SÉANCE DU JOUR</span>
+                    <div class="cal-nav">
+                        <button class="cal-nav-btn" onclick="cycleHomeWorkout(-1)" title="Séance précédente">‹</button>
+                        <button class="cal-nav-btn" onclick="cycleHomeWorkout(1)" title="Séance suivante">›</button>
+                    </div>
+                </div>
+                <div class="dash-card hero-workout-card">
+                    <div class="hero-main-row">
+                        <div class="hero-main-info">
+                            <div class="dash-workout-title" id="home-next-workout">Push</div>
+                            <div class="dash-workout-sub" id="home-next-sub">Pecs · Épaules · Triceps</div>
+                            <span id="home-workout-count" style="display:none;"></span>
+                        </div>
+                        <button class="hero-action-btn" id="home-gym-btn" onclick="switchTab('gym')">Commencer ›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOC 2 : Calendrier d'Assiduité -->
+            <div class="home-block-group" id="home-block-calendar" data-block-id="calendar">
+                <div class="block-section-header">
                     <div class="cal-nav">
                         <button class="cal-nav-btn" onclick="changeHomeCalNav(-1)">‹</button>
                         <span class="cal-month-title" id="cal-month-title">NOV 2026</span>
@@ -55,99 +91,77 @@
                         <span class="badge badge-up" id="cal-month-count">0 séance</span>
                     </div>
                 </div>
-                <div class="cal-weekdays">
-                    <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
-                </div>
-                <div id="calendar-grid" class="cal-grid"></div>
-                <div id="calendar-legend" class="cal-legend"></div>
-            </div>
-
-            <!-- BLOC 2 : Entraînement avec sélecteur rapide < > (B1) -->
-            <div class="dash-card highlight-card" id="home-block-workout" data-block-id="workout">
-                <div class="dash-card-header">
-                    <span class="card-title">Séance du jour</span>
-                    <div class="cal-nav">
-                        <button class="cal-nav-btn" onclick="cycleHomeWorkout(-1)">‹</button>
-                        <button class="cal-nav-btn" onclick="cycleHomeWorkout(1)">›</button>
+                <div class="dash-card">
+                    <div class="cal-weekdays">
+                        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
                     </div>
+                    <div id="calendar-grid" class="cal-grid"></div>
+                    <div id="calendar-legend" class="cal-legend"></div>
                 </div>
-                <h2 class="dash-workout-title" id="home-next-workout">Jour 1 : Push</h2>
-                <p class="dash-workout-sub" id="home-next-sub">Pecs, Épaules, Triceps</p>
-                <button class="primary-btn" id="home-gym-btn" onclick="switchTab('gym')">Ouvrir le Mode Gym ›</button>
             </div>
 
-            <!-- BLOC 3 : Résumé Nutrition & Hydratation (Anneaux d'Activité & Hydratation intégrée - V4.1) -->
-            <div class="dash-card" id="home-block-nutri" data-block-id="nutri">
-                <div class="dash-card-header" onclick="switchTab('nutri')" style="cursor:pointer;">
-                    <span class="card-title">Nutrition & Hydratation</span>
+            <!-- BLOC 3 : Résumé Nutrition & Hydratation -->
+            <div class="home-block-group" id="home-block-nutri" data-block-id="nutri">
+                <div class="block-section-header" onclick="switchTab('nutri')" style="cursor:pointer;">
+                    <span class="section-title-label">Nutrition & Hydratation</span>
                     <span class="dash-link">Détails ›</span>
                 </div>
-
-                <!-- Anneaux d'Activité (Calories, Protéines, Eau) + Hero Kcal -->
-                <div class="nutri-hero-with-rings">
-                    <div class="activity-rings-container" onclick="switchTab('nutri')" style="cursor:pointer;">
-                        <svg class="activity-rings-svg" viewBox="0 0 120 120" width="96" height="96">
-                            <!-- Anneau 1 : Calories (Rouge/Rose) R=48, C=2*PI*48 ~= 301.6 -->
-                            <circle cx="60" cy="60" r="48" class="ring-bg ring-cal-bg" stroke-width="9"/>
-                            <circle id="ring-cal" cx="60" cy="60" r="48" class="ring-fg ring-cal-fg" stroke-width="9" stroke-dasharray="301.6" stroke-dashoffset="301.6"/>
-                            <!-- Anneau 2 : Protéines (Émeraude) R=36, C=2*PI*36 ~= 226.2 -->
-                            <circle cx="60" cy="60" r="36" class="ring-bg ring-prot-bg" stroke-width="9"/>
-                            <circle id="ring-prot" cx="60" cy="60" r="36" class="ring-fg ring-prot-fg" stroke-width="9" stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
-                            <!-- Anneau 3 : Hydratation (Bleu Cyan) R=24, C=2*PI*24 ~= 150.8 -->
-                            <circle cx="60" cy="60" r="24" class="ring-bg ring-water-bg" stroke-width="9"/>
-                            <circle id="ring-water" cx="60" cy="60" r="24" class="ring-fg ring-water-fg" stroke-width="9" stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
-                        </svg>
-                    </div>
-
-                    <div class="nutri-hero-stats">
-                        <div class="kcal-hero" onclick="switchTab('nutri')" style="cursor:pointer; margin:0;">
-                            <span id="home-kcal">0</span> <small id="home-kcal-target">/ 2700 kcal</small>
+                <div class="dash-card">
+                    <!-- Anneaux d'Activité & Hero Kcal -->
+                    <div class="nutri-hero-with-rings">
+                        <div class="activity-rings-container" onclick="switchTab('nutri')" style="cursor:pointer;">
+                            <svg class="activity-rings-svg" viewBox="0 0 120 120" width="118" height="118">
+                                <!-- Anneau 1 : Calories R=48 -->
+                                <circle cx="60" cy="60" r="48" class="ring-bg ring-cal-bg" stroke-width="9" fill="none"/>
+                                <circle id="ring-cal" cx="60" cy="60" r="48" class="ring-fg ring-cal-fg" stroke-width="9" stroke-dasharray="301.6" stroke-dashoffset="301.6" fill="none"/>
+                                <!-- Anneau 2 : Protéines R=36 -->
+                                <circle cx="60" cy="60" r="36" class="ring-bg ring-prot-bg" stroke-width="9" fill="none"/>
+                                <circle id="ring-prot" cx="60" cy="60" r="36" class="ring-fg ring-prot-fg" stroke-width="9" stroke-dasharray="226.2" stroke-dashoffset="226.2" fill="none"/>
+                                <!-- Anneau 3 : Hydratation R=24 -->
+                                <circle cx="60" cy="60" r="24" class="ring-bg ring-water-bg" stroke-width="9" fill="none"/>
+                                <circle id="ring-water" cx="60" cy="60" r="24" class="ring-fg ring-water-fg" stroke-width="9" stroke-dasharray="150.8" stroke-dashoffset="150.8" fill="none"/>
+                            </svg>
                         </div>
-                        <div class="progress-bar-bg" style="margin: 8px 0 0;">
-                            <div id="home-kcal-bar" class="progress-bar-fill" style="width: 0%;"></div>
-                        </div>
-                        <div class="rings-pills">
-                            <span id="ring-cal-pct" class="ring-pill-badge pill-cal">0% kcal</span>
-                            <span id="ring-prot-pct" class="ring-pill-badge pill-prot">0% prot</span>
-                            <span id="ring-water-pct" class="ring-pill-badge pill-water">0% eau</span>
+
+                        <div class="nutri-hero-stats" onclick="switchTab('nutri')" style="cursor:pointer;">
+                            <div class="kcal-hero" style="margin:0;">
+                                <span id="home-kcal">0</span> <small id="home-kcal-target">/ 2700 kcal</small>
+                            </div>
+                            <div class="rings-pills" style="margin-top: 10px;">
+                                <span id="ring-cal-pct" class="ring-pill-badge pill-cal">0% kcal</span>
+                                <span id="ring-prot-pct" class="ring-pill-badge pill-prot">0% prot</span>
+                                <span id="ring-water-pct" class="ring-pill-badge pill-water">0% eau</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Macros Protéines, Glucides, Lipides -->
-                <div class="macros-grid" onclick="switchTab('nutri')" style="cursor:pointer; margin-top: 12px;">
-                    <div class="macro-item">
-                        <span class="macro-name">Protéines</span>
-                        <strong id="home-prot">0 / 150g</strong>
-                        <div class="macro-mini-bar"><div id="home-prot-bar" class="macro-mini-fill" style="width:0%"></div></div>
+                    <!-- Éléments masqués pour compatibilité logique sans doublon visuel -->
+                    <div style="display:none;">
+                        <div id="home-kcal-bar"></div>
+                        <span id="home-prot"></span>
+                        <span id="home-carbs"></span>
+                        <span id="home-fats"></span>
+                        <div id="home-prot-bar"></div>
+                        <div id="home-carbs-bar"></div>
+                        <div id="home-fats-bar"></div>
                     </div>
-                    <div class="macro-item">
-                        <span class="macro-name">Glucides</span>
-                        <strong id="home-carbs">0 / 330g</strong>
-                        <div class="macro-mini-bar"><div id="home-carbs-bar" class="macro-mini-fill" style="width:0%"></div></div>
-                    </div>
-                    <div class="macro-item">
-                        <span class="macro-name">Lipides</span>
-                        <strong id="home-fats">0 / 80g</strong>
-                        <div class="macro-mini-bar"><div id="home-fats-bar" class="macro-mini-fill" style="width:0%"></div></div>
-                    </div>
-                </div>
 
-                <!-- BLOC HYDRATATION DIRECTEMENT INCORPORÉ (V4.1) -->
-                <div class="integrated-water-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px;">
-                            💧 Hydratation
-                        </span>
-                        <strong id="home-water" style="font-size: 0.88rem; color: #0284c7;">0.0 / 3.0 L</strong>
-                    </div>
-                    <div class="progress-bar-bg" style="margin-bottom: 10px;">
-                        <div id="home-water-bar" class="progress-bar-fill water-fill" style="width: 0%;"></div>
-                    </div>
-                    <div class="quick-btns">
-                        <button onclick="addWater(0.25)">+ 25 cl</button>
-                        <button onclick="addWater(0.50)">+ 50 cl</button>
-                        <button onclick="addWater(-0.25)">- 25 cl</button>
+                    <!-- Hydratation -->
+                    <div class="integrated-water-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px;">
+                                💧 Hydratation
+                            </span>
+                            <strong id="home-water" style="font-size: 0.88rem; color: var(--water);">0.0 / 3.0 L</strong>
+                        </div>
+                        <div class="progress-bar-bg" style="margin-bottom: 10px;">
+                            <div id="home-water-bar" class="progress-bar-fill water-fill" style="width: 0%;"></div>
+                        </div>
+                        <div class="quick-btns">
+                            <button onclick="addWater(0.25)">+ 25 cl</button>
+                            <button onclick="addWater(0.50)">+ 50 cl</button>
+                            <button onclick="addWater(-0.25)">- 25 cl</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -194,13 +208,13 @@
             <button class="primary-btn" id="gym-save-btn" onclick="saveWorkoutSession()">Valider & Sauvegarder la séance</button>
         </div>
 
-        <div style="text-align:center; margin-top:2px;">
-            <button class="mini-tool-btn" onclick="toggleGymAdminDrawer()" style="padding:8px 16px; border-radius:99px;">
+        <div style="text-align:center; margin-top:4px;">
+            <button class="mini-tool-btn" onclick="toggleGymAdminDrawer()" style="padding:8px 16px; border-radius:var(--radius-pill);">
                 🛠️ Gérer ou modifier cette séance
             </button>
         </div>
 
-        <div id="gym-admin-drawer" class="settings-drawer" style="background:#fff;">
+        <div id="gym-admin-drawer" class="settings-drawer">
             <div class="program-toolbar" style="margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border);">
                 <label class="color-picker-badge">
                     🎨 Couleur
@@ -239,8 +253,8 @@
         <div id="nutri-cards-container" class="cards-stack">
 
             <!-- BLOC NUTRI 1 : Calendrier -->
-            <div class="dash-card" id="nutri-block-calendar">
-                <div class="dash-card-header">
+            <div class="block-group" id="nutri-block-calendar">
+                <div class="block-section-header">
                     <div class="cal-nav">
                         <button class="cal-nav-btn" onclick="changeNutriCalNav(-1)">‹</button>
                         <span class="cal-month-title" id="nutri-cal-title">NOV 2026</span>
@@ -249,110 +263,119 @@
                     <div class="cal-header-actions">
                         <button class="cal-view-toggle-btn" id="nutri-cal-toggle-btn" onclick="toggleNutriCalView()" title="Réduire à la semaine en cours">📅 Semaine</button>
                         <div class="nutri-cal-legend-pills">
-                            <span style="color:#047857;" id="nutri-cal-legend-ok">● ≥2700</span>
+                            <span style="color:var(--success);" id="nutri-cal-legend-ok">● ≥2700</span>
                             <span style="color:#d97706;" id="nutri-cal-legend-low">● &lt;2700</span>
                         </div>
                     </div>
                 </div>
-                <div class="cal-weekdays">
-                    <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                <div class="dash-card">
+                    <div class="cal-weekdays">
+                        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                    </div>
+                    <div id="nutri-calendar-grid" class="cal-grid"></div>
                 </div>
-                <div id="nutri-calendar-grid" class="cal-grid"></div>
             </div>
 
             <!-- BLOC NUTRI 2 : Bilan du jour -->
-            <div class="dash-card highlight-card" id="nutri-block-summary">
-                <div class="dash-card-header">
-                    <span class="card-title" id="nutri-selected-date-label">Aujourd'hui</span>
+            <div class="block-group" id="nutri-block-summary">
+                <div class="block-section-header">
+                    <span class="section-title-label" id="nutri-selected-date-label">Aujourd'hui</span>
                     <button class="mini-tool-btn" onclick="resetNutriDay()">Vider</button>
                 </div>
-                <div class="kcal-hero">
-                    <span id="nutri-kcal">0</span> <small id="nutri-kcal-target">/ 2700 kcal</small>
-                </div>
-                <div class="progress-bar-bg">
-                    <div id="nutri-kcal-bar" class="progress-bar-fill" style="width: 0%;"></div>
-                </div>
-                <div class="macros-grid">
-                    <div class="macro-item">
-                        <span class="macro-name">Protéines</span>
-                        <strong id="nutri-prot">0 / 150g</strong>
-                        <div class="macro-mini-bar"><div id="nutri-prot-bar" class="macro-mini-fill" style="width:0%"></div></div>
+                <div class="dash-card highlight-card">
+                    <div class="kcal-hero">
+                        <span id="nutri-kcal">0</span> <small id="nutri-kcal-target">/ 2700 kcal</small>
                     </div>
-                    <div class="macro-item">
-                        <span class="macro-name">Glucides</span>
-                        <strong id="nutri-carbs">0 / 330g</strong>
-                        <div class="macro-mini-bar"><div id="nutri-carbs-bar" class="macro-mini-fill" style="width:0%"></div></div>
+                    <div class="progress-bar-bg">
+                        <div id="nutri-kcal-bar" class="progress-bar-fill" style="width: 0%;"></div>
                     </div>
-                    <div class="macro-item">
-                        <span class="macro-name">Lipides</span>
-                        <strong id="nutri-fats">0 / 80g</strong>
-                        <div class="macro-mini-bar"><div id="nutri-fats-bar" class="macro-mini-fill" style="width:0%"></div></div>
+                    <div class="macros-grid">
+                        <div class="macro-item">
+                            <span class="macro-name">Protéines</span>
+                            <strong id="nutri-prot">0 / 150g</strong>
+                            <div class="macro-mini-bar"><div id="nutri-prot-bar" class="macro-mini-fill" style="width:0%"></div></div>
+                        </div>
+                        <div class="macro-item">
+                            <span class="macro-name">Glucides</span>
+                            <strong id="nutri-carbs">0 / 330g</strong>
+                            <div class="macro-mini-bar"><div id="nutri-carbs-bar" class="macro-mini-fill" style="width:0%"></div></div>
+                        </div>
+                        <div class="macro-item">
+                            <span class="macro-name">Lipides</span>
+                            <strong id="nutri-fats">0 / 80g</strong>
+                            <div class="macro-mini-bar"><div id="nutri-fats-bar" class="macro-mini-fill" style="width:0%"></div></div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Hydratation intégrée (V4.1) -->
-                <div class="integrated-water-section" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px;">
-                            💧 Hydratation
-                        </span>
-                        <strong id="nutri-water" style="font-size: 0.88rem; color: #0284c7;">0.0 / 3.0 L</strong>
-                    </div>
-                    <div class="progress-bar-bg" style="margin-bottom: 10px;">
-                        <div id="nutri-water-bar" class="progress-bar-fill water-fill" style="width: 0%;"></div>
-                    </div>
-                    <div class="quick-btns">
-                        <button onclick="addWater(0.25)">+ 25 cl</button>
-                        <button onclick="addWater(0.50)">+ 50 cl</button>
-                        <button onclick="addWater(-0.25)">- 25 cl</button>
+                    <!-- Hydratation intégrée -->
+                    <div class="integrated-water-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px;">
+                                💧 Hydratation
+                            </span>
+                            <strong id="nutri-water" style="font-size: 0.88rem; color: var(--water);">0.0 / 3.0 L</strong>
+                        </div>
+                        <div class="progress-bar-bg" style="margin-bottom: 10px;">
+                            <div id="nutri-water-bar" class="progress-bar-fill water-fill" style="width: 0%;"></div>
+                        </div>
+                        <div class="quick-btns">
+                            <button onclick="addWater(0.25)">+ 25 cl</button>
+                            <button onclick="addWater(0.50)">+ 50 cl</button>
+                            <button onclick="addWater(-0.25)">- 25 cl</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- BLOC NUTRI 3 : Repas Favoris + Bouton [+ Autre aliment] (D1) -->
-            <div class="dash-card" id="nutri-block-favorites">
-                <div class="dash-card-header">
-                    <span class="card-title">Mes favoris</span>
+            <!-- BLOC NUTRI 3 : Repas Favoris -->
+            <div class="block-group" id="nutri-block-favorites">
+                <div class="block-section-header">
+                    <span class="section-title-label">Mes favoris</span>
                     <div style="display:flex; gap:6px;">
                         <button class="mini-tool-btn" onclick="toggleCustomFoodDrawer()">+ Autre aliment</button>
                         <button class="mini-tool-btn" id="fav-edit-btn" onclick="toggleFavEditMode()">Modifier</button>
                     </div>
                 </div>
-                <div id="favorites-grid" class="preset-grid" style="margin-top: 8px;"></div>
+                <div class="dash-card">
+                    <div id="favorites-grid" class="preset-grid" style="margin-top: 0;"></div>
 
-                <!-- Formulaire d'ajout manuel replié par défaut (D1) -->
-                <div id="custom-food-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
-                    <span class="field-label">Ajouter un repas manuel ou favori</span>
-                    <input type="text" id="custom-food-name" class="clean-input" placeholder="Nom (ex: Shaker, Tacos...)" style="margin: 6px 0 8px;">
-                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:10px;">
-                        <input type="number" id="custom-kcal" class="clean-input" placeholder="Kcal" style="text-align:center;">
-                        <input type="number" id="custom-prot" class="clean-input" placeholder="Prot(g)" style="text-align:center;">
-                        <input type="number" id="custom-carbs" class="clean-input" placeholder="Gluc(g)" style="text-align:center;">
-                        <input type="number" id="custom-fats" class="clean-input" placeholder="Lip(g)" style="text-align:center;">
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="primary-btn" style="flex:1; padding:10px;" onclick="addCustomMeal(false)">Ajouter au jour</button>
-                        <button class="secondary-btn" style="flex:1; padding:10px;" onclick="addCustomMeal(true)">⭐ En favori</button>
+                    <!-- Formulaire d'ajout manuel replié par défaut -->
+                    <div id="custom-food-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
+                        <span class="field-label">Ajouter un repas manuel ou favori</span>
+                        <input type="text" id="custom-food-name" class="clean-input" placeholder="Nom (ex: Shaker, Tacos...)" style="margin: 6px 0 8px;">
+                        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:10px;">
+                            <input type="number" id="custom-kcal" class="clean-input" placeholder="Kcal" style="text-align:center;">
+                            <input type="number" id="custom-prot" class="clean-input" placeholder="Prot(g)" style="text-align:center;">
+                            <input type="number" id="custom-carbs" class="clean-input" placeholder="Gluc(g)" style="text-align:center;">
+                            <input type="number" id="custom-fats" class="clean-input" placeholder="Lip(g)" style="text-align:center;">
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="primary-btn" style="flex:1; padding:10px;" onclick="addCustomMeal(false)">Ajouter au jour</button>
+                            <button class="secondary-btn" style="flex:1; padding:10px;" onclick="addCustomMeal(true)">⭐ En favori</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- BLOC NUTRI 4 : Journal du jour avec doublons regroupés (D2) -->
-            <div class="dash-card" id="nutri-block-log">
-                <span class="card-title">Journal du jour</span>
-                <div id="meals-log-list" style="margin-top: 10px;"></div>
+            <!-- BLOC NUTRI 4 : Journal du jour -->
+            <div class="block-group" id="nutri-block-log">
+                <div class="block-section-header">
+                    <span class="section-title-label">Journal du jour</span>
+                </div>
+                <div class="dash-card">
+                    <div id="meals-log-list" style="margin-top: 0;"></div>
+                </div>
             </div>
 
         </div>
 
-        <!-- Paramètres, Recalculateur Kcal & Réorganisation en fin de page -->
-        <div class="dash-card">
-            <div class="dash-card-header" style="margin-bottom:0;">
-                <span class="card-title">Bilan calorique & Affichage</span>
+        <!-- Paramètres, Recalculateur Kcal & Réorganisation -->
+        <div class="block-group" style="margin-top:18px;">
+            <div class="block-section-header">
+                <span class="section-title-label">Bilan calorique & Affichage</span>
                 <button class="mini-tool-btn" onclick="toggleNutriCalcDrawer()">Configurer</button>
             </div>
-
-            <div id="nutri-calc-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
+            <div id="nutri-calc-drawer" class="settings-drawer" style="margin-top:0; margin-bottom:0;">
                 <div class="settings-grid">
                     <div class="settings-field"><label>Poids (kg)</label><input type="number" step="0.1" id="calc-weight" value="70"></div>
                     <div class="settings-field"><label>Taille (cm)</label><input type="number" id="calc-height" value="178"></div>
@@ -361,7 +384,7 @@
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
                     <div class="settings-field">
                         <label>Activité</label>
-                        <select id="calc-activity" class="machine-select" style="width:100%; background:#fff;">
+                        <select id="calc-activity" class="machine-select" style="width:100%; background:var(--bg-card);">
                             <option value="1.375">Léger (1-2/sem)</option>
                             <option value="1.55" selected>Actif (3-5/sem)</option>
                             <option value="1.725">Très actif (5-6/sem)</option>
@@ -369,7 +392,7 @@
                     </div>
                     <div class="settings-field">
                         <label>Objectif</label>
-                        <select id="calc-goal" class="machine-select" style="width:100%; background:#fff;">
+                        <select id="calc-goal" class="machine-select" style="width:100%; background:var(--bg-card);">
                             <option value="300" selected>Prise de masse (+300)</option>
                             <option value="500">Prise rapide (+500)</option>
                             <option value="0">Maintien (0)</option>
@@ -403,11 +426,11 @@
     </section>
 
     <!-- =========================================================
-         VUE 4 : PROGRÈS (E1, E2, E3, E4)
+         VUE 4 : PROGRÈS (CARTE FUT, COURBES & BILAN)
     ========================================================== -->
     <section id="view-progress" class="app-view">
         
-        <!-- CARTE FUT MUSCULATION (V4.1 - Dynamique & Évolutive) -->
+        <!-- CARTE FUT MUSCULATION -->
         <div class="fut-card-wrapper">
             <div id="fut-card" class="fut-card fut-gold">
                 <div class="fut-card-shine"></div>
@@ -453,94 +476,119 @@
             </div>
         </div>
 
-        <div class="dash-card highlight-card">
-            <span class="card-title">Bilan de régularité</span>
-            <div id="muscle-summary-grid" class="summary-grid" style="margin-top:12px;"></div>
+        <!-- FILTRES DE PÉRIODE & TUILES DE SYNTHÈSE (V5.5) -->
+        <div class="progress-filters-row" style="margin-top: 18px;">
+            <button class="filter-pill active" onclick="setProgressFilter('30d', this)">30 jours</button>
+            <button class="filter-pill" onclick="setProgressFilter('3m', this)">3 mois</button>
+            <button class="filter-pill" onclick="setProgressFilter('1y', this)">Année</button>
         </div>
 
-        <!-- Heatmap Annuelle 52 semaines Style GitHub (V4.1) -->
-        <div class="dash-card">
-            <div class="dash-card-header">
-                <span class="card-title">Régularité annuelle (52 semaines)</span>
-                <span id="heatmap-summary-badge" class="badge badge-up">0 séance / an</span>
+        <div class="progress-tiles-grid">
+            <div class="progress-tile">
+                <span class="tile-tiny">Séances</span>
+                <div class="tile-big" id="prog-stat-sessions">0</div>
+                <span class="tile-small" id="prog-stat-sessions-sub">ce mois</span>
             </div>
-            <div class="heatmap-wrapper">
-                <div id="annual-heatmap" class="heatmap-grid"></div>
+            <div class="progress-tile">
+                <span class="tile-tiny">Force</span>
+                <div class="tile-big" id="prog-stat-force">+0.0%</div>
+                <span class="tile-small" id="prog-stat-force-sub">ce mois</span>
             </div>
-            <div class="heatmap-legend">
-                <span>Moins</span>
-                <span class="heatmap-dot l0"></span>
-                <span class="heatmap-dot l1"></span>
-                <span class="heatmap-dot l2"></span>
-                <span>Plus</span>
+            <div class="progress-tile">
+                <span class="tile-tiny">Poids</span>
+                <div class="tile-big" id="prog-stat-weight">--</div>
+                <span class="tile-small">kg actuel</span>
             </div>
         </div>
 
-        <!-- Courbe et Historique par Machine avec suppression d'erreur (E1) -->
-        <div class="dash-card">
-            <div class="dash-card-header">
-                <span class="card-title">Évolution par machine</span>
-            </div>
-            <select id="progress-machine-select" class="machine-select" style="width:100%; margin-bottom:12px;" onchange="renderMachineProgressChart()">
-            </select>
-            <div id="machine-chart-box" class="chart-container empty-chart"></div>
-            <div id="machine-history-log" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;"></div>
-        </div>
+        <div class="cards-stack">
 
-        <!-- Courbe Poids Corporel avec vrai poids de départ (E2) et suppression d'erreur (E1) -->
-        <div class="dash-card">
-            <div class="dash-card-header">
-                <span class="card-title">Poids corporel (<span id="current-weight-display">--</span> kg)</span>
-                <span class="badge badge-up" id="weight-diff-badge">0.0 kg</span>
-            </div>
-            <div style="display:flex; gap:8px; margin-bottom:14px;">
-                <input type="number" step="0.1" inputmode="decimal" id="weight-input-field" class="clean-input" placeholder="Pesée à jeun (ex: 70.4)">
-                <button class="primary-btn" style="width:auto; padding:0 18px;" onclick="saveBodyWeight()">Noter</button>
-            </div>
-            <div id="weight-chart-box" class="chart-container empty-chart"></div>
-            <div id="weight-history-pills" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;"></div>
-        </div>
-
-        <!-- Records 1RM pliables Top 5 (E3) -->
-        <div class="dash-card">
-            <div class="dash-card-header">
-                <span class="card-title">Records par machine</span>
-            </div>
-            <div id="records-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-            <button id="toggle-records-btn" class="mini-tool-btn" style="width:100%; margin-top:10px; display:none; padding:8px;" onclick="toggleAllRecords()"></button>
-        </div>
-
-        <!-- Sauvegarde & GitHub repliés dans un tiroir discret en bas (E4) -->
-        <div class="dash-card">
-            <div class="dash-card-header" style="margin-bottom:0;">
-                <span class="card-title">Sauvegarde & Cloud GitHub</span>
-                <button class="mini-tool-btn" onclick="toggleBackupDrawer()">Ouvrir</button>
-            </div>
-
-            <div id="backup-main-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">
-                    Copie ta base en local ou synchronise ton fichier <code>backup.json</code> sur ton dépôt GitHub.
-                </p>
-                <div class="quick-btns" style="margin-bottom:8px;">
-                    <button onclick="exportData()">📤 Copier JSON</button>
-                    <button onclick="importData()">📥 Coller JSON</button>
+            <!-- CARTE 1 : Graphique d'évolution 1RM Épuré -->
+            <div class="dash-card progress-trend-card">
+                <div class="trend-card-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="trend-card-selector-wrap">
+                            <select id="progress-machine-select" class="trend-machine-select" onchange="renderMachineProgressChart()">
+                            </select>
+                            <span class="trend-sub-label">· 1RM estimé</span>
+                        </div>
+                        <div class="trend-big-number">
+                            <span id="trend-1rm-val">--</span> <small>kg</small>
+                        </div>
+                    </div>
+                    <span class="pill green" id="trend-gain-badge">+0 %</span>
                 </div>
-                <div style="display:flex; gap:8px;">
-                    <button class="primary-btn" style="flex:1; padding:10px; font-size:0.84rem;" onclick="syncToGitHub()">☁️ Sync GitHub</button>
-                    <button class="secondary-btn" style="padding:10px 12px; font-size:0.82rem;" onclick="pullFromGitHub()">📲 Charger</button>
-                </div>
-                <div id="github-sync-status" style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; text-align:center;"></div>
+                <div id="machine-chart-box" class="trend-chart-container empty-chart"></div>
+                <div id="trend-chart-dates" class="trend-dates-row"></div>
+            </div>
 
-                <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:10px;">
-                    <label class="field-label">Accès GitHub (Owner / Repo / Token)</label>
-                    <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
-                        <input type="text" id="gh-owner" class="clean-input" placeholder="Pseudo GitHub (ex: gael-espinoza)">
-                        <input type="text" id="gh-repo" class="clean-input" placeholder="Nom du dépôt (ex: gym-tracker)">
-                        <input type="password" id="gh-token" class="clean-input" placeholder="Token (ghp_...)">
-                        <button class="secondary-btn" style="padding:8px; font-size:0.8rem;" onclick="saveGithubConfig()">Enregistrer mes accès GitHub</button>
+            <!-- CARTE 2 : Régularité Heatmap -->
+            <div class="dash-card">
+                <div class="dash-card-header" style="margin-bottom:12px;">
+                    <span class="card-title">Régularité</span>
+                    <span id="heatmap-summary-badge" class="pill">0 séance cette année</span>
+                </div>
+                <div class="heatmap-wrapper">
+                    <div id="annual-heatmap" class="heatmap-grid"></div>
+                </div>
+                <div class="heatmap-legend" style="margin-top:10px;">
+                    <span>Moins</span>
+                    <span class="heatmap-dot l0"></span>
+                    <span class="heatmap-dot l1"></span>
+                    <span class="heatmap-dot l2"></span>
+                    <span>Plus</span>
+                </div>
+            </div>
+
+            <!-- CARTE 3 : Poids corporel (conservé) -->
+            <div class="block-group">
+                <div class="block-section-header">
+                    <span class="section-title-label">Poids corporel (<span id="current-weight-display">--</span> kg)</span>
+                    <span class="badge badge-up" id="weight-diff-badge">0.0 kg</span>
+                </div>
+                <div class="dash-card">
+                    <div style="display:flex; gap:8px; margin-bottom:14px;">
+                        <input type="number" step="0.1" inputmode="decimal" id="weight-input-field" class="clean-input" placeholder="Pesée à jeun (ex: 70.4)">
+                        <button class="primary-btn" style="width:auto; padding:0 18px;" onclick="saveBodyWeight()">Noter</button>
+                    </div>
+                    <div id="weight-chart-box" class="chart-container empty-chart"></div>
+                    <div id="weight-history-pills" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;"></div>
+                </div>
+            </div>
+
+            <!-- CARTE 4 : Sauvegarde & GitHub (conservé) -->
+            <div class="block-group">
+                <div class="block-section-header">
+                    <span class="section-title-label">Sauvegarde & Cloud GitHub</span>
+                    <button class="mini-tool-btn" onclick="toggleBackupDrawer()">Ouvrir</button>
+                </div>
+
+                <div id="backup-main-drawer" class="settings-drawer" style="margin-top:0; margin-bottom:0;">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">
+                        Copie ta base en local ou synchronise ton fichier <code>backup.json</code> sur ton dépôt GitHub.
+                    </p>
+                    <div class="quick-btns" style="margin-bottom:8px;">
+                        <button onclick="exportData()">📤 Copier JSON</button>
+                        <button onclick="importData()">📥 Coller JSON</button>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="primary-btn" style="flex:1; padding:10px; font-size:0.84rem;" onclick="syncToGitHub()">☁️ Sync GitHub</button>
+                        <button class="secondary-btn" style="padding:10px 12px; font-size:0.82rem;" onclick="pullFromGitHub()">📲 Charger</button>
+                    </div>
+                    <div id="github-sync-status" style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; text-align:center;"></div>
+
+                    <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:10px;">
+                        <label class="field-label">Accès GitHub (Owner / Repo / Token)</label>
+                        <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
+                            <input type="text" id="gh-owner" class="clean-input" placeholder="Pseudo GitHub (ex: gael-espinoza)">
+                            <input type="text" id="gh-repo" class="clean-input" placeholder="Nom du dépôt (ex: gym-tracker)">
+                            <input type="password" id="gh-token" class="clean-input" placeholder="Token (ghp_...)">
+                            <button class="secondary-btn" style="padding:8px; font-size:0.8rem;" onclick="saveGithubConfig()">Enregistrer mes accès GitHub</button>
+                        </div>
                     </div>
                 </div>
             </div>
+
         </div>
 
     </section>
@@ -556,19 +604,31 @@
         </div>
     </div>
 
-    <!-- TAB BAR iOS -->
+    <!-- BOTTOM TAB BAR VECTORIELLE & LUMINEUSE -->
     <nav class="bottom-tab-bar">
         <button class="tab-item active" id="tab-home" onclick="switchTab('home')">
-            <span class="tab-icon">🏠</span><span class="tab-label">Accueil</span>
+            <span class="tab-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </span>
+            <span class="tab-label">Accueil</span>
         </button>
         <button class="tab-item" id="tab-gym" onclick="switchTab('gym')">
-            <span class="tab-icon">🏋️</span><span class="tab-label">Gym</span>
+            <span class="tab-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1a5 5 0 0 0-7-7l-1 1"/><path d="m3 3 1 1a5 5 0 0 0 7 7l1-1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>
+            </span>
+            <span class="tab-label">Gym</span>
         </button>
         <button class="tab-item" id="tab-nutri" onclick="switchTab('nutri')">
-            <span class="tab-icon">🥗</span><span class="tab-label">Nutri</span>
+            <span class="tab-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M12 2v20"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+            </span>
+            <span class="tab-label">Nutri</span>
         </button>
         <button class="tab-item" id="tab-progress" onclick="switchTab('progress')">
-            <span class="tab-icon">📈</span><span class="tab-label">Progrès</span>
+            <span class="tab-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </span>
+            <span class="tab-label">Progrès</span>
         </button>
     </nav>
 

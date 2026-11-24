@@ -1,4 +1,4 @@
-// app.js — VERSION 4.1 (Clean V2.4 Base + Dark Mode, Anneau Nutrition/Eau, Bips Audio, Vibrations, Heatmap)
+// app.js — VERSION 5.0 (Refonte Design Épurée, Polices Manrope & DM Sans, Palette Pastel, Dock Vectoriel)
 
 let currentDayKey = 'push';
 let timerInterval = null;
@@ -86,7 +86,9 @@ function toggleSound() {
 function updateSoundBtn() {
     const btn = document.getElementById('sound-toggle-btn');
     if (btn) {
-        btn.textContent = soundEnabled ? "🔊" : "🔇";
+        btn.innerHTML = soundEnabled ?
+            `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>` :
+            `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>`;
         btn.title = soundEnabled ? "Bips activés (Cliquer pour couper)" : "Sourdine (Cliquer pour réactiver)";
         btn.classList.toggle('muted', !soundEnabled);
     }
@@ -117,7 +119,12 @@ function toggleTheme() {
 
 function updateThemeBtn(theme) {
     const btn = document.getElementById('theme-toggle-btn');
-    if (btn) btn.textContent = (theme === 'dark') ? "🌙" : "☀️";
+    if (btn) {
+        btn.innerHTML = (theme === 'dark') ?
+            `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>` :
+            `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+        btn.title = (theme === 'dark') ? "Mode Clair" : "Mode Sombre";
+    }
 }
 
 // Helper pour désérialiser sereinement un objet ou chaîne doublement encodée
@@ -932,11 +939,8 @@ function loadWorkout(dayKey) {
                     </div>
                 </div>
 
-                <!-- RÈGLE C7 : Bandeau général épuré (Séries/Reps · RIR · Repos · 1RM) -->
-                <div class="c7-general-banner">
-                    <span>${exo.sets}×${exo.repsMin}-${exo.repsMax} Reps · RIR ${exo.rir} · Repos ${exo.rest}s</span>
-                    <span class="c7-1rm-val" id="1rm_${exo.id}">1RM : -- kg</span>
-                </div>
+                <!-- 1RM conservé de manière masquée pour les calculs internes -->
+                <span id="1rm_${exo.id}" style="display:none;"></span>
 
                 <!-- RÈGLE C1 : Indication Coach + Rampe fusionnée sans boîte lourde -->
                 <div class="c1-coach-line ${coach.isLevelUp ? 'level-up' : ''}" id="coach_line_${exo.id}">
@@ -1253,6 +1257,7 @@ function switchTab(tabName) {
     document.getElementById('header-subtitle').textContent = titles[tabName][1];
 
     updateAllViews();
+    if (window.lucide) { try { lucide.createIcons(); } catch(e){} }
     window.scrollTo(0, 0);
 }
 
@@ -1271,26 +1276,50 @@ function updateHomeDashboard() {
     const programs = getPrograms();
     const curProg = programs[currentDayKey] || Object.values(programs)[0];
 
+    const dateBanner = document.getElementById('home-date-banner');
+    if (dateBanner) {
+        const now = new Date();
+        const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+        const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        dateBanner.textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} · Semaine ${weekNo}`;
+    }
+
     if (document.getElementById('view-home').classList.contains('active')) {
         const homeCfg = getHomeConfig();
         document.getElementById('header-title').textContent = homeCfg.title;
         document.getElementById('header-subtitle').textContent = homeCfg.subtitle;
     }
 
-    document.getElementById('home-kcal').textContent = todayData.kcal;
-    document.getElementById('home-kcal-target').textContent = `/ ${targets.kcal} kcal`;
-    updateBarWithGoalColor(document.getElementById('home-kcal-bar'), todayData.kcal, targets.kcal);
+    const elKcal = document.getElementById('home-kcal');
+    if (elKcal) elKcal.textContent = todayData.kcal;
+    const elKcalTarget = document.getElementById('home-kcal-target');
+    if (elKcalTarget) elKcalTarget.textContent = `/ ${targets.kcal} kcal`;
+    const elKcalBar = document.getElementById('home-kcal-bar');
+    if (elKcalBar) updateBarWithGoalColor(elKcalBar, todayData.kcal, targets.kcal);
 
-    document.getElementById('home-prot').textContent = `${todayData.prot} / ${targets.prot}g`;
-    document.getElementById('home-carbs').textContent = `${todayData.carbs} / ${targets.carbs}g`;
-    document.getElementById('home-fats').textContent = `${todayData.fats} / ${targets.fats}g`;
+    const elProt = document.getElementById('home-prot');
+    if (elProt) elProt.textContent = `${todayData.prot} / ${targets.prot}g`;
+    const elCarbs = document.getElementById('home-carbs');
+    if (elCarbs) elCarbs.textContent = `${todayData.carbs} / ${targets.carbs}g`;
+    const elFats = document.getElementById('home-fats');
+    if (elFats) elFats.textContent = `${todayData.fats} / ${targets.fats}g`;
 
-    updateBarWithGoalColor(document.getElementById('home-prot-bar'), todayData.prot, targets.prot);
-    updateBarWithGoalColor(document.getElementById('home-carbs-bar'), todayData.carbs, targets.carbs);
-    updateBarWithGoalColor(document.getElementById('home-fats-bar'), todayData.fats, targets.fats);
+    const elProtBar = document.getElementById('home-prot-bar');
+    if (elProtBar) updateBarWithGoalColor(elProtBar, todayData.prot, targets.prot);
+    const elCarbsBar = document.getElementById('home-carbs-bar');
+    if (elCarbsBar) updateBarWithGoalColor(elCarbsBar, todayData.carbs, targets.carbs);
+    const elFatsBar = document.getElementById('home-fats-bar');
+    if (elFatsBar) updateBarWithGoalColor(elFatsBar, todayData.fats, targets.fats);
 
-    document.getElementById('home-water').textContent = `${(todayData.water || 0).toFixed(2)} / ${targets.water.toFixed(1)} L`;
-    document.getElementById('home-water-bar').style.width = `${Math.min(((todayData.water || 0) / targets.water) * 100, 100)}%`;
+    const elWater = document.getElementById('home-water');
+    if (elWater) elWater.textContent = `${(todayData.water || 0).toFixed(2)} / ${targets.water.toFixed(1)} L`;
+    const elWaterBar = document.getElementById('home-water-bar');
+    if (elWaterBar) elWaterBar.style.width = `${Math.min(((todayData.water || 0) / targets.water) * 100, 100)}%`;
 
     // Anneaux d'Activité (Calories, Protéines, Eau) - V4.1
     const calPct = Math.min((todayData.kcal / targets.kcal) * 100, 100);
@@ -1318,7 +1347,12 @@ function updateHomeDashboard() {
         document.getElementById('home-next-workout').textContent = curProg.title;
         document.getElementById('home-next-sub').textContent = curProg.subtitle;
         const btn = document.getElementById('home-gym-btn');
-        if (btn) btn.style.background = curProg.color || '#005AA0';
+        if (btn) btn.style.background = curProg.color || 'var(--accent)';
+        const countEl = document.getElementById('home-workout-count');
+        if (countEl && curProg.exercises) {
+            const count = curProg.exercises.length;
+            countEl.textContent = `${count} exercice${count > 1 ? 's' : ''} prévu${count > 1 ? 's' : ''}`;
+        }
     }
 
     renderHomeCalendar();
@@ -1818,6 +1852,41 @@ function deleteWeightEntry(idx) {
     showToast("🗑️ Pesée supprimée");
 }
 
+// =========================================================
+// FILTRES DE PÉRIODE & SYNTHÈSE PROGRÈS (V5.5)
+// =========================================================
+let currentProgressPeriod = '30d';
+
+function setProgressFilter(period, btnEl) {
+    currentProgressPeriod = period;
+    document.querySelectorAll('.progress-filters-row .filter-pill').forEach(btn => btn.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    updateProgressView();
+}
+
+function formatChartDate(dateStr) {
+    if (!dateStr) return '';
+    if (dateStr.includes('-')) {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            const d = parseInt(parts[2], 10);
+            const mIdx = parseInt(parts[1], 10) - 1;
+            const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+            return `${d} ${months[mIdx] || ''}`;
+        }
+    }
+    if (dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        if (parts.length >= 2) {
+            const d = parseInt(parts[0], 10);
+            const mIdx = parseInt(parts[1], 10) - 1;
+            const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+            return `${d} ${months[mIdx] || ''}`;
+        }
+    }
+    return dateStr;
+}
+
 function updateProgressView() {
     const machineLogs = getMachineLogs();
     const cal = getWorkoutCalendar();
@@ -1830,6 +1899,7 @@ function updateProgressView() {
     const cwDisplay = document.getElementById('current-weight-display');
     if (cwDisplay) cwDisplay.textContent = parseFloat(meta.weight || 70.0).toFixed(1);
 
+    // Collecter les machines avec données
     let recordsHTML = '';
     const machineKeysWithData = [];
     let sumPctGain = 0;
@@ -1875,48 +1945,123 @@ function updateProgressView() {
         `;
     });
 
-    // Calculs du nouveau Bilan Pertinent (Rythme du mois, Progression moyenne, Top Machine, Régularité Nutri)
+    // 1. Calculs selon la période sélectionnée (30j, 3m, 1y)
     const now = new Date();
-    const currentMonthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const thisMonthSessions = Object.keys(cal).filter(d => d.startsWith(currentMonthPrefix)).length;
-    const avgPerWeek = (thisMonthSessions / Math.max(1, now.getDate() / 7)).toFixed(1);
+    let daysLimit = 30;
+    let periodSubtext = 'ce mois';
+    if (currentProgressPeriod === '3m') {
+        daysLimit = 90;
+        periodSubtext = '3 mois';
+    } else if (currentProgressPeriod === '1y') {
+        daysLimit = 365;
+        periodSubtext = 'cette année';
+    }
 
-    const avgForceGain = progressedMachinesCount > 0 ? (sumPctGain / progressedMachinesCount).toFixed(1) : '0.0';
+    const cutoffDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysLimit, 0, 0, 0, 0);
+    const cutoffKey = `${cutoffDate.getFullYear()}-${String(cutoffDate.getMonth() + 1).padStart(2, '0')}-${String(cutoffDate.getDate()).padStart(2, '0')}`;
 
-    const activeNutriDays = Object.values(nutriLogs).filter(d => d && d.kcal > 0);
-    const goalMetDays = activeNutriDays.filter(d => d.kcal >= targets.kcal).length;
-    const avgKcal = activeNutriDays.length > 0
-        ? Math.round(activeNutriDays.reduce((acc, d) => acc + d.kcal, 0) / activeNutriDays.length)
-        : 0;
+    // Nombre de séances dans la période
+    let periodSessionsCount = 0;
+    Object.entries(cal).forEach(([dKey, val]) => {
+        if (val && dKey >= cutoffKey) {
+            periodSessionsCount++;
+        }
+    });
 
-    document.getElementById('muscle-summary-grid').innerHTML = `
-        <div class="summary-box">
-            <div class="summary-box-title">📅 Rythme du mois</div>
-            <div class="summary-box-val">${thisMonthSessions} séance${thisMonthSessions > 1 ? 's' : ''}</div>
-            <div class="summary-box-sub">~${avgPerWeek} séance(s) / sem</div>
-        </div>
-        <div class="summary-box">
-            <div class="summary-box-title">📈 Progression Force</div>
-            <div class="summary-box-val">${avgForceGain >= 0 ? '+' : ''}${avgForceGain}%</div>
-            <div class="summary-box-sub">${progressedMachinesCount > 0 ? `Sur ${progressedMachinesCount} machine(s)` : 'Dès 2 séances/machine'}</div>
-        </div>
-        <div class="summary-box">
-            <div class="summary-box-title">🔥 Meilleure Évol.</div>
-            <div class="summary-box-val" style="font-size:0.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${bestGainMachine || (meta.lastMachine || '--')}</div>
-            <div class="summary-box-sub">${bestGainMachine ? `+${bestGainVal.toFixed(1)}% de 1RM` : 'Dernier exo actif'}</div>
-        </div>
-        <div class="summary-box">
-            <div class="summary-box-title">🥗 Cible Nutrition</div>
-            <div class="summary-box-val">${goalMetDays} j validé${goalMetDays > 1 ? 's' : ''}</div>
-            <div class="summary-box-sub">${avgKcal > 0 ? `Moy. ${avgKcal} kcal/j` : `Cible ${targets.kcal} kcal`}</div>
-        </div>
-    `;
+    const sessEl = document.getElementById('prog-stat-sessions');
+    const sessSubEl = document.getElementById('prog-stat-sessions-sub');
+    if (sessEl) sessEl.textContent = periodSessionsCount;
+    if (sessSubEl) sessSubEl.textContent = periodSubtext;
+
+    // Progression de Force moyenne dans la période
+    let sumPeriodGain = 0;
+    let countPeriodGain = 0;
+    Object.entries(machineLogs).forEach(([mKey, sessionsArr]) => {
+        if (!sessionsArr || sessionsArr.length === 0) return;
+        const inPeriod = sessionsArr.filter(s => !s.dateKey || s.dateKey >= cutoffKey);
+        if (inPeriod.length >= 2) {
+            const firstRM = inPeriod[0].best1RM || 1;
+            const lastRM = inPeriod[inPeriod.length - 1].best1RM || 0;
+            const gain = ((lastRM - firstRM) / firstRM) * 100;
+            sumPeriodGain += gain;
+            countPeriodGain++;
+        } else if (inPeriod.length === 1 && sessionsArr.length >= 2) {
+            const prev = sessionsArr[sessionsArr.length - 2];
+            const lastRM = inPeriod[0].best1RM || 0;
+            const prevRM = prev.best1RM || 1;
+            const gain = ((lastRM - prevRM) / prevRM) * 100;
+            sumPeriodGain += gain;
+            countPeriodGain++;
+        }
+    });
+
+    let avgForceVal = 0;
+    if (countPeriodGain > 0) {
+        avgForceVal = sumPeriodGain / countPeriodGain;
+    } else if (progressedMachinesCount > 0) {
+        avgForceVal = sumPctGain / progressedMachinesCount;
+    }
+
+    const forceEl = document.getElementById('prog-stat-force');
+    const forceSubEl = document.getElementById('prog-stat-force-sub');
+    if (forceEl) forceEl.textContent = `${avgForceVal >= 0 ? '+' : ''}${Math.round(avgForceVal)}%`;
+    if (forceSubEl) forceSubEl.textContent = periodSubtext;
+
+    // Poids corporel actuel
+    const weightLog = JSON.parse(localStorage.getItem('vtaper_weights') || '[]');
+    const currentWeight = (weightLog.length > 0 && weightLog[weightLog.length - 1].w)
+        ? weightLog[weightLog.length - 1].w
+        : (parseFloat(meta.weight) || 67.0);
+
+    const weightTileEl = document.getElementById('prog-stat-weight');
+    if (weightTileEl) {
+        weightTileEl.textContent = Number(currentWeight).toFixed(1).replace('.', ',');
+    }
+
+    // Garde-fous pour anciens conteneurs s'ils sont présents
+    const muscleGrid = document.getElementById('muscle-summary-grid');
+    if (muscleGrid) {
+        const currentMonthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        const thisMonthSessions = Object.keys(cal).filter(d => d.startsWith(currentMonthPrefix)).length;
+        const avgPerWeek = (thisMonthSessions / Math.max(1, now.getDate() / 7)).toFixed(1);
+        const avgForceGain = progressedMachinesCount > 0 ? (sumPctGain / progressedMachinesCount).toFixed(1) : '0.0';
+        const activeNutriDays = Object.values(nutriLogs).filter(d => d && d.kcal > 0);
+        const goalMetDays = activeNutriDays.filter(d => d.kcal >= targets.kcal).length;
+        const avgKcal = activeNutriDays.length > 0
+            ? Math.round(activeNutriDays.reduce((acc, d) => acc + d.kcal, 0) / activeNutriDays.length)
+            : 0;
+
+        muscleGrid.innerHTML = `
+            <div class="summary-box">
+                <div class="summary-box-title">📅 Rythme du mois</div>
+                <div class="summary-box-val">${thisMonthSessions} séance${thisMonthSessions > 1 ? 's' : ''}</div>
+                <div class="summary-box-sub">~${avgPerWeek} séance(s) / sem</div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-box-title">📈 Progression Force</div>
+                <div class="summary-box-val">${avgForceGain >= 0 ? '+' : ''}${avgForceGain}%</div>
+                <div class="summary-box-sub">${progressedMachinesCount > 0 ? `Sur ${progressedMachinesCount} machine(s)` : 'Dès 2 séances/machine'}</div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-box-title">🔥 Meilleure Évol.</div>
+                <div class="summary-box-val" style="font-size:0.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${bestGainMachine || (meta.lastMachine || '--')}</div>
+                <div class="summary-box-sub">${bestGainMachine ? `+${bestGainVal.toFixed(1)}% de 1RM` : 'Dernier exo actif'}</div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-box-title">🥗 Cible Nutrition</div>
+                <div class="summary-box-val">${goalMetDays} j validé${goalMetDays > 1 ? 's' : ''}</div>
+                <div class="summary-box-sub">${avgKcal > 0 ? `Moy. ${avgKcal} kcal/j` : `Cible ${targets.kcal} kcal`}</div>
+            </div>
+        `;
+    }
 
     const recordsBox = document.getElementById('records-list');
-    recordsBox.innerHTML = recordsHTML || `<p style="font-size:0.78rem; color:var(--text-muted);">Valide une séance pour alimenter ta bibliothèque de performances.</p>`;
+    if (recordsBox) {
+        recordsBox.innerHTML = recordsHTML || `<p style="font-size:0.78rem; color:var(--text-muted);">Valide une séance pour alimenter ta bibliothèque de performances.</p>`;
+    }
 
     const toggleBtn = document.getElementById('toggle-records-btn');
-    if (toggleBtn) {
+    if (toggleBtn && recordsBox) {
         const rows = recordsBox.querySelectorAll('.record-row');
         if (rows.length > 5) {
             toggleBtn.style.display = 'block';
@@ -1929,13 +2074,15 @@ function updateProgressView() {
         }
     }
 
+    // Sélecteur épuré de machine dans la carte 1RM
     if (select) {
         if (machineKeysWithData.length === 0) {
-            select.innerHTML = `<option value="">-- Enregistre une séance pour voir les courbes --</option>`;
+            select.innerHTML = `<option value="">-- Aucune séance --</option>`;
         } else {
+            const isValidPrev = machineKeysWithData.some(m => m.key === prevSelectedKey);
             select.innerHTML = machineKeysWithData.map(m => {
-                const sWord = m.count > 1 ? 'séances' : 'séance';
-                return `<option value="${m.key}" ${m.key === prevSelectedKey ? 'selected' : ''}>📈 ${m.name} (${m.count} ${sWord})</option>`;
+                const isSel = isValidPrev ? (m.key === prevSelectedKey) : (m.key === machineKeysWithData[0].key);
+                return `<option value="${m.key}" ${isSel ? 'selected' : ''}>${m.name}</option>`;
             }).join('');
         }
         renderMachineProgressChart();
@@ -2134,7 +2281,7 @@ function renderAnnualHeatmap() {
     
     const annualCount = getAnnualSessionsCount(cal);
     if (badge) {
-        badge.textContent = `${annualCount} séance${annualCount > 1 ? 's' : ''} / an`;
+        badge.textContent = `${annualCount} séance${annualCount > 1 ? 's' : ''} cette année`;
     }
 }
 
@@ -2149,8 +2296,12 @@ function selectMachineInProgress(mKey) {
 function renderMachineProgressChart() {
     const select = document.getElementById('progress-machine-select');
     const chartBox = document.getElementById('machine-chart-box');
+    const datesBox = document.getElementById('trend-chart-dates');
+    const valEl = document.getElementById('trend-1rm-val');
+    const badgeEl = document.getElementById('trend-gain-badge');
     const logBox = document.getElementById('machine-history-log');
-    if (!select || !chartBox || !logBox) return;
+
+    if (!select || !chartBox) return;
 
     const mKey = select.value;
     const logs = getMachineLogs();
@@ -2159,50 +2310,93 @@ function renderMachineProgressChart() {
     if (sessions.length === 0) {
         chartBox.classList.add('empty-chart');
         chartBox.innerHTML = `<p style="font-size:0.76rem; color:var(--text-muted);">Aucune séance enregistrée sur cette machine.</p>`;
-        logBox.innerHTML = '';
+        if (datesBox) datesBox.innerHTML = '';
+        if (valEl) valEl.textContent = '--';
+        if (badgeEl) {
+            badgeEl.textContent = '0 %';
+            badgeEl.className = 'pill';
+        }
+        if (logBox) logBox.innerHTML = '';
         return;
     }
 
-    logBox.innerHTML = sessions.slice(-5).reverse().map(s => {
-        const setsStr = s.sets.map(x => `${x.weight}kg×${x.reps}`).join(' | ');
-        return `<div style="font-size:0.74rem; background:var(--bg-elevated); padding:6px 10px; border-radius:8px; display:flex; justify-content:space-between; gap:8px;">
-                    <span><b>${s.displayDate}</b> : ${setsStr}</span>
-                    <strong style="color:var(--accent); white-space:nowrap;">1RM : ${s.best1RM} kg</strong>
-                </div>`;
-    }).join('');
+    const lastSession = sessions[sessions.length - 1];
+    const firstSession = sessions[0];
+    const last1RM = lastSession.best1RM || 0;
+    const first1RM = firstSession.best1RM || 1;
+    const count = sessions.length;
+
+    if (valEl) valEl.textContent = Number(last1RM).toFixed(1).replace('.', ',');
+
+    if (badgeEl) {
+        if (count > 1) {
+            const rawGain = (((last1RM - first1RM) / first1RM) * 100);
+            const roundedGain = Math.round(rawGain);
+            badgeEl.textContent = `${roundedGain >= 0 ? '+' : ''}${roundedGain} %`;
+            badgeEl.className = `pill ${roundedGain >= 0 ? 'green' : 'red'}`;
+        } else {
+            badgeEl.textContent = '1re séance';
+            badgeEl.className = 'pill';
+        }
+    }
+
+    if (logBox) {
+        logBox.innerHTML = sessions.slice(-5).reverse().map(s => {
+            const setsStr = s.sets.map(x => `${x.weight}kg×${x.reps}`).join(' | ');
+            return `<div style="font-size:0.74rem; background:var(--bg-elevated); padding:6px 10px; border-radius:8px; display:flex; justify-content:space-between; gap:8px;">
+                        <span><b>${s.displayDate}</b> : ${setsStr}</span>
+                        <strong style="color:var(--accent); white-space:nowrap;">1RM : ${s.best1RM} kg</strong>
+                    </div>`;
+        }).join('');
+    }
 
     const recent = sessions.slice(-8);
     if (recent.length < 2) {
         chartBox.classList.add('empty-chart');
-        chartBox.innerHTML = `<p style="font-size:0.76rem; color:var(--text-muted); text-align:center;">1 séance enregistrée (1RM : <b>${recent[0].best1RM} kg</b> le ${recent[0].displayDate}). La courbe s'affichera dès ta 2e séance !</p>`;
+        chartBox.innerHTML = `<p style="font-size:0.76rem; color:var(--text-muted); text-align:center;">1 séance enregistrée (1RM : <b>${recent[0].best1RM} kg</b>). La courbe s'affichera dès ta 2e séance !</p>`;
+        if (datesBox) datesBox.innerHTML = `<span>${formatChartDate(recent[0].dateKey || recent[0].displayDate)}</span>`;
         return;
     }
 
     chartBox.classList.remove('empty-chart');
     const vals = recent.map(d => d.best1RM);
-    const minV = Math.min(...vals) - 2;
-    const maxV = Math.max(...vals) + 2;
-    const width = 300, height = 115;
+    const minV = Math.min(...vals);
+    const maxV = Math.max(...vals);
+    const range = (maxV - minV) || 2;
+    const yMin = minV - range * 0.15;
+    const yMax = maxV + range * 0.15;
+
+    const width = 320, height = 90;
+    const padX = 14;
+    const padY = 12;
 
     const points = recent.map((d, i) => {
-        const x = 24 + (i / (recent.length - 1)) * (width - 48);
-        const y = height - 22 - ((d.best1RM - minV) / (maxV - minV || 1)) * (height - 48);
-        return { x, y, val: d.best1RM, date: d.displayDate };
+        const x = padX + (i / (recent.length - 1)) * (width - 2 * padX);
+        const y = height - padY - ((d.best1RM - yMin) / (yMax - yMin)) * (height - 2 * padY);
+        return { x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), val: d.best1RM, dateKey: d.dateKey, displayDate: d.displayDate };
     });
 
     const polyline = points.map(p => `${p.x},${p.y}`).join(' ');
-    const circles = points.map(p => `
-        <circle cx="${p.x}" cy="${p.y}" r="4" fill="#005AA0" />
-        <text x="${p.x}" y="${p.y - 7}" fill="#111827" font-size="8.5" font-weight="bold" text-anchor="middle">${p.val}kg</text>
-        <text x="${p.x}" y="${height - 5}" fill="#64748b" font-size="7.5" text-anchor="middle">${p.date}</text>
-    `).join('');
+    const lastP = points[points.length - 1];
+
+    const gridY1 = (height * 0.35).toFixed(1);
+    const gridY2 = (height * 0.70).toFixed(1);
 
     chartBox.innerHTML = `
-        <svg viewBox="0 0 ${width} ${height}" width="100%" height="100%">
-            <polyline fill="none" stroke="#005AA0" stroke-width="3" points="${polyline}" />
-            ${circles}
+        <svg viewBox="0 0 ${width} ${height}" width="100%" height="100%" style="overflow:visible;">
+            <line x1="4" y1="${gridY1}" x2="${width - 4}" y2="${gridY1}" stroke="var(--border)" stroke-dasharray="3,3" stroke-width="1" opacity="0.6"/>
+            <line x1="4" y1="${gridY2}" x2="${width - 4}" y2="${gridY2}" stroke="var(--border)" stroke-dasharray="3,3" stroke-width="1" opacity="0.6"/>
+            <polyline fill="none" stroke="#17629a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${polyline}" />
+            <circle cx="${lastP.x}" cy="${lastP.y}" r="4.5" fill="#17629a" stroke="#ffffff" stroke-width="2" />
         </svg>
     `;
+
+    if (datesBox) {
+        datesBox.innerHTML = points.map(p => {
+            const formatted = formatChartDate(p.dateKey || p.displayDate);
+            return `<span>${formatted}</span>`;
+        }).join('');
+    }
 }
 
 function renderBodyWeightChart() {
@@ -2366,7 +2560,7 @@ function resetTimer() {
 
 function buildFullBackupPayload() {
     return {
-        version: "4.5",
+        version: "5.0",
         updatedAt: new Date().toLocaleString('fr-FR'),
         homeConfig: getHomeConfig(),
         nutriOrder: getNutriOrder(),
