@@ -1,6 +1,6 @@
 {
   "version": "4.5",
-  "updatedAt": "23/11/2026 14:27:42",
+  "updatedAt": "24/11/2026 16:12:07",
   "homeConfig": {
     "title": "Accueil",
     "subtitle": "Objectif 80 kg & Calisthénie",
@@ -339,7 +339,7 @@
         {
           "id": "up_1",
           "title": "Développé couché 0° haltères",
-          "sets": 4,
+          "sets": 3,
           "repsMin": 6,
           "repsMax": 8,
           "rir": "1-2",
@@ -354,7 +354,7 @@
         {
           "id": "up_2",
           "title": "Tractions prise neutre lestées",
-          "sets": 4,
+          "sets": 3,
           "repsMin": 8,
           "repsMax": 10,
           "rir": "1-2",
@@ -377,14 +377,15 @@
           "hasWarmupRamp": false,
           "variants": [
             "Pike Push-ups pieds surélevés",
-            "Développé militaire machine"
+            "Développé militaire machine",
+            "Développé militaire haltères"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 2
         },
         {
           "id": "up_4",
           "title": "Élévations latérales haltères",
-          "sets": 4,
+          "sets": 3,
           "repsMin": 12,
           "repsMax": 15,
           "rir": "0-1",
@@ -394,7 +395,7 @@
             "Élévations latérales haltères",
             "Poulie basse / Machine"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 1
         },
         {
           "id": "up_5",
@@ -4817,6 +4818,14 @@
       "meals": []
     },
     "2026-11-23": {
+      "water": 0,
+      "kcal": 0,
+      "prot": 0,
+      "carbs": 0,
+      "fats": 0,
+      "meals": []
+    },
+    "2026-11-24": {
       "water": 0,
       "kcal": 0,
       "prot": 0,
