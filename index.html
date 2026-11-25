@@ -16,9 +16,6 @@
     
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Bibliothèque d'icônes Lucide -->
-    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -30,19 +27,26 @@
 
     <!-- HEADER GLOBAL FIXE ÉPURÉ -->
     <header class="app-header">
-        <div style="min-width: 0; padding-right: 8px;">
-            <h1 id="header-title" class="brand-title">Gaël<span class="brand-dot">.</span></h1>
-            <p id="header-subtitle" class="brand-sub">Objectif 80 kg · Calisthénie</p>
-        </div>
-        <div class="header-right-zone">
-            <button class="icon-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Basculer Mode Sombre/Clair" aria-label="Thème"></button>
-            <button class="icon-toggle-btn" id="sound-toggle-btn" onclick="toggleSound()" title="Activer/Couper les bips" aria-label="Son"></button>
-            <div class="timer-wrapper" id="timer-wrapper">
-                <button class="timer-adj-btn timer-extra" onclick="adjustTimer(-30)">-30s</button>
-                <div id="timer-box" class="timer-idle" onclick="resetTimer()">
-                    <span id="timer-display">⏱ 00:00</span>
+        <div class="header-inner">
+            <div class="header-left-zone">
+                <h1 id="header-title" class="brand-title">Gaël<span class="brand-dot">.</span></h1>
+                <p id="header-subtitle" class="brand-sub">Objectif 80 kg · Calisthénie</p>
+            </div>
+            <div class="header-right-zone">
+                <button class="icon-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Basculer Mode Sombre/Clair" aria-label="Thème"></button>
+                <button class="icon-toggle-btn" id="sound-toggle-btn" onclick="toggleSound()" title="Activer/Couper les bips" aria-label="Son"></button>
+                <button class="icon-toggle-btn" id="settings-toggle-btn" onclick="openGlobalSettingsModal()" title="Réglages & Profil" aria-label="Réglages">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+                <div class="timer-wrapper" id="timer-wrapper">
+                    <div id="timer-box" class="timer-idle" onclick="resetTimer()" title="Cliquer pour réinitialiser le chrono">
+                        <span id="timer-display">⏱ 00:00</span>
+                        <svg class="timer-ring-svg" viewBox="0 0 36 36" width="20" height="20" style="flex-shrink:0;">
+                            <circle class="timer-ring-bg" cx="18" cy="18" r="15.9" fill="none" stroke-width="3.5"/>
+                            <circle class="timer-ring-fg" id="timer-ring-fg" cx="18" cy="18" r="15.9" fill="none" stroke-width="3.5" stroke-dasharray="100 100" stroke-dashoffset="100" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+                        </svg>
+                    </div>
                 </div>
-                <button class="timer-adj-btn timer-extra" onclick="adjustTimer(30)">+30s</button>
             </div>
         </div>
     </header>
@@ -53,7 +57,7 @@
     <section id="view-home" class="app-view active">
 
         <div class="overline-date" id="home-date-banner">Lundi 23 novembre · Semaine 48</div>
-        <h2 class="hero-greeting">Bonjour, Gaël.</h2>
+        <h2 class="hero-greeting" id="home-greeting">Bonjour, Gaël.</h2>
 
         <div id="home-cards-container" class="cards-stack">
 
@@ -135,17 +139,6 @@
                         </div>
                     </div>
 
-                    <!-- Éléments masqués pour compatibilité logique sans doublon visuel -->
-                    <div style="display:none;">
-                        <div id="home-kcal-bar"></div>
-                        <span id="home-prot"></span>
-                        <span id="home-carbs"></span>
-                        <span id="home-fats"></span>
-                        <div id="home-prot-bar"></div>
-                        <div id="home-carbs-bar"></div>
-                        <div id="home-fats-bar"></div>
-                    </div>
-
                     <!-- Hydratation -->
                     <div class="integrated-water-section">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -168,31 +161,6 @@
 
         </div>
 
-        <!-- Personnalisation tout en bas de l'Accueil -->
-        <div class="dash-card">
-            <div class="dash-card-header" style="margin-bottom:0;">
-                <span class="card-title">Affichage de l'accueil</span>
-                <button class="mini-tool-btn" onclick="toggleHomeEditDrawer()">Modifier</button>
-            </div>
-            <div id="home-edit-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    <div>
-                        <label class="field-label">Titre de la page</label>
-                        <input type="text" id="cfg-home-title" class="clean-input">
-                    </div>
-                    <div>
-                        <label class="field-label">Description / Objectif</label>
-                        <input type="text" id="cfg-home-sub" class="clean-input">
-                    </div>
-                    <div style="margin-top:4px;">
-                        <label class="field-label">Ordre des cartes</label>
-                        <div id="home-order-list" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;"></div>
-                    </div>
-                    <button class="primary-btn" style="padding:10px; margin-top:4px;" onclick="saveHomeCustomization()">Enregistrer</button>
-                </div>
-            </div>
-        </div>
-
     </section>
 
     <!-- =========================================================
@@ -201,6 +169,14 @@
     <section id="view-gym" class="app-view">
         
         <nav id="day-selector-bar" class="day-selector"></nav>
+
+        <div class="gym-session-bar">
+            <span class="pill" id="gym-duration-pill" onclick="resetGymSessionTimer()" title="Durée de la séance en cours (cliquer pour remettre à zéro)">⏱ Séance : 0 min</span>
+            <label class="gym-date-label">
+                <span>📅</span>
+                <input type="date" id="gym-session-date" class="gym-date-input" aria-label="Date de la séance">
+            </label>
+        </div>
 
         <div id="workout-container" class="cards-stack"></div>
 
@@ -239,6 +215,11 @@
                     <input type="number" id="new-exo-max" class="clean-input" placeholder="Max" value="12" style="text-align:center;">
                     <input type="number" id="new-exo-rest" class="clean-input" placeholder="Repos(s)" value="90" style="text-align:center;">
                 </div>
+                <select id="new-exo-type" class="machine-select">
+                    <option value="weight">Type : Poids + Reps (kg)</option>
+                    <option value="bodyweight">Type : Poids du corps (reps)</option>
+                    <option value="time">Type : Gainage / Temps (sec)</option>
+                </select>
                 <button class="secondary-btn" onclick="addExerciseToCurrentWorkout()">+ Ajouter à la séance</button>
             </div>
         </div>
@@ -342,12 +323,34 @@
                     <!-- Formulaire d'ajout manuel replié par défaut -->
                     <div id="custom-food-drawer" class="settings-drawer" style="margin-top:12px; margin-bottom:0;">
                         <span class="field-label">Ajouter un repas manuel ou favori</span>
+
+                        <!-- RECHERCHE OPENFOODFACTS V6.1 -->
+                        <div style="margin-bottom:10px; margin-top:8px;">
+                            <div style="display:flex; gap:6px; margin-bottom:6px;">
+                                <input type="text" id="off-search-input" class="clean-input" placeholder="🔍 Rechercher un aliment (ex: yaourt grec)..." oninput="debounceOFFSearch()">
+                            </div>
+                            <div id="off-search-results" style="display:flex; flex-direction:column; gap:5px;"></div>
+                        </div>
+
                         <input type="text" id="custom-food-name" class="clean-input" placeholder="Nom (ex: Shaker, Tacos...)" style="margin: 6px 0 8px;">
-                        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:10px;">
+                        <div id="off-portion-box" class="off-portion-box" style="display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+                                <span style="font-size:0.74rem; font-weight:700; color:var(--text-main);">⚖️ Portion (g)</span>
+                                <input type="number" id="off-portion-grams" class="clean-input" value="100" min="1" style="width:82px; padding:5px 8px; text-align:center;" oninput="rescaleCustomFoodPortion()">
+                            </div>
+                            <div class="portion-pills-row">
+                                <button type="button" class="mini-tool-btn" onclick="setOffPortion(50)">50g</button>
+                                <button type="button" class="mini-tool-btn" onclick="setOffPortion(100)">100g</button>
+                                <button type="button" class="mini-tool-btn" onclick="setOffPortion(150)">150g</button>
+                                <button type="button" class="mini-tool-btn" onclick="setOffPortion(200)">200g</button>
+                                <button type="button" class="mini-tool-btn" onclick="setOffPortion(250)">250g</button>
+                            </div>
+                        </div>
+                        <div class="custom-macros-grid">
                             <input type="number" id="custom-kcal" class="clean-input" placeholder="Kcal" style="text-align:center;">
-                            <input type="number" id="custom-prot" class="clean-input" placeholder="Prot(g)" style="text-align:center;">
-                            <input type="number" id="custom-carbs" class="clean-input" placeholder="Gluc(g)" style="text-align:center;">
-                            <input type="number" id="custom-fats" class="clean-input" placeholder="Lip(g)" style="text-align:center;">
+                            <input type="number" id="custom-prot" class="clean-input" placeholder="Prot g" style="text-align:center;">
+                            <input type="number" id="custom-carbs" class="clean-input" placeholder="Gluc g" style="text-align:center;">
+                            <input type="number" id="custom-fats" class="clean-input" placeholder="Lip g" style="text-align:center;">
                         </div>
                         <div style="display:flex; gap:8px;">
                             <button class="primary-btn" style="flex:1; padding:10px;" onclick="addCustomMeal(false)">Ajouter au jour</button>
@@ -361,6 +364,7 @@
             <div class="block-group" id="nutri-block-log">
                 <div class="block-section-header">
                     <span class="section-title-label">Journal du jour</span>
+                    <button class="mini-tool-btn" onclick="copyYesterdayMeals()">📋 Copier hier</button>
                 </div>
                 <div class="dash-card">
                     <div id="meals-log-list" style="margin-top: 0;"></div>
@@ -406,7 +410,7 @@
 
                 <div style="border-top:1px solid var(--border); padding-top:10px;">
                     <label class="field-label">Cibles quotidiennes actives</label>
-                    <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-top:6px;">
+                    <div class="nutri-targets-grid">
                         <div class="settings-field"><label>Kcal</label><input type="number" id="target-kcal" value="2700"></div>
                         <div class="settings-field"><label>Prot(g)</label><input type="number" id="target-prot" value="150"></div>
                         <div class="settings-field"><label>Gluc(g)</label><input type="number" id="target-carbs" value="330"></div>
@@ -520,6 +524,25 @@
                 </div>
                 <div id="machine-chart-box" class="trend-chart-container empty-chart"></div>
                 <div id="trend-chart-dates" class="trend-dates-row"></div>
+                <div id="machine-history-log" class="machine-history-log"></div>
+            </div>
+
+            <!-- CARTE 1B : Volume hebdomadaire par groupe musculaire (V6.3) -->
+            <div class="dash-card">
+                <div class="dash-card-header" style="margin-bottom:10px;">
+                    <span class="card-title">Volume de la semaine</span>
+                    <span id="weekly-sets-badge" class="pill">0 série</span>
+                </div>
+                <div id="weekly-muscle-volume" class="weekly-volume-grid"></div>
+            </div>
+
+            <!-- CARTE 1C : Mes Records PRs (V6.3) -->
+            <div class="dash-card">
+                <div class="dash-card-header" style="margin-bottom:10px;">
+                    <span class="card-title">Records personnels (PRs)</span>
+                    <button class="mini-tool-btn" id="toggle-records-btn" style="display:none;" onclick="toggleAllRecords()">▼ Voir tout</button>
+                </div>
+                <div id="records-list" class="records-list-stack"></div>
             </div>
 
             <!-- CARTE 2 : Régularité Heatmap -->
@@ -560,7 +583,7 @@
             <div class="block-group">
                 <div class="block-section-header">
                     <span class="section-title-label">Sauvegarde & Cloud GitHub</span>
-                    <button class="mini-tool-btn" onclick="toggleBackupDrawer()">Ouvrir</button>
+                    <button class="mini-tool-btn" id="backup-toggle-btn" onclick="toggleBackupDrawer()">Ouvrir</button>
                 </div>
 
                 <div id="backup-main-drawer" class="settings-drawer" style="margin-top:0; margin-bottom:0;">
@@ -568,9 +591,14 @@
                         Copie ta base en local ou synchronise ton fichier <code>backup.json</code> sur ton dépôt GitHub.
                     </p>
                     <div class="quick-btns" style="margin-bottom:8px;">
-                        <button onclick="exportData()">📤 Copier JSON</button>
-                        <button onclick="importData()">📥 Coller JSON</button>
+                        <button onclick="exportData()">📤 Copier</button>
+                        <button onclick="importData()">📥 Coller</button>
                     </div>
+                    <div class="quick-btns" style="margin-bottom:8px;">
+                        <button onclick="downloadBackupFile()">💾 Fichier .json</button>
+                        <button onclick="triggerBackupFileImport()">📂 Importer .json</button>
+                    </div>
+                    <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;" onchange="handleBackupFileSelected(event)">
                     <div style="display:flex; gap:8px;">
                         <button class="primary-btn" style="flex:1; padding:10px; font-size:0.84rem;" onclick="syncToGitHub()">☁️ Sync GitHub</button>
                         <button class="secondary-btn" style="padding:10px 12px; font-size:0.82rem;" onclick="pullFromGitHub()">📲 Charger</button>
@@ -593,6 +621,21 @@
 
     </section>
 
+    <!-- MODALE RÉCAP DE SÉANCE V6.1 / V6.3 -->
+    <div id="recap-modal" class="modal-overlay" onclick="closeRecapModal()">
+        <div class="modal-sheet recap-sheet" onclick="event.stopPropagation()">
+            <div class="recap-header">
+                <span class="recap-emoji" id="recap-emoji">🎉</span>
+                <h2 class="recap-title" id="recap-title">Séance terminée !</h2>
+                <p class="recap-subtitle" id="recap-subtitle">Push · Pecs, Épaules, Triceps</p>
+            </div>
+            <div id="recap-prs" class="recap-prs-list"></div>
+            <div class="recap-stats-grid" id="recap-stats">
+            </div>
+            <button class="primary-btn" style="margin-top:16px;" onclick="closeRecapModal()">Continuer →</button>
+        </div>
+    </div>
+
     <!-- MODALE DE SÉLECTION DE SÉANCE SUR LE CALENDRIER D'ACCUEIL -->
     <div id="cal-picker-modal" class="modal-overlay" onclick="closeCalModal(event)">
         <div class="modal-sheet" onclick="event.stopPropagation()">
@@ -602,6 +645,88 @@
             </div>
             <div id="modal-workout-list" style="display:flex; flex-direction:column; gap:8px;"></div>
         </div>
+    </div>
+
+    <!-- MODALE INPUT CUSTOM V6.1 (remplace prompt()) -->
+    <div id="input-modal" class="modal-overlay" onclick="closeInputModal()">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div id="input-modal-title"></div>
+            <input type="text" id="input-modal-field" class="clean-input" style="margin-bottom:4px;">
+            <div class="modal-btn-row">
+                <button class="secondary-btn" style="flex:1;" onclick="closeInputModal()">Annuler</button>
+                <button class="primary-btn" id="input-modal-confirm" style="flex:2;">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE CONFIRMATION CUSTOM V6.3 (remplace confirm()) -->
+    <div id="confirm-modal" class="modal-overlay" onclick="closeConfirmModal()">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div id="confirm-modal-title" class="confirm-modal-title">Confirmer</div>
+            <p id="confirm-modal-message" class="confirm-modal-msg"></p>
+            <div class="modal-btn-row">
+                <button class="secondary-btn" style="flex:1;" onclick="closeConfirmModal()">Annuler</button>
+                <button class="primary-btn" id="confirm-modal-ok" style="flex:1;">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE IMPORT JSON TEXTAREA V6.3 -->
+    <div id="json-import-modal" class="modal-overlay" onclick="closeJsonImportModal()">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="dash-card-header" style="margin-bottom:10px;">
+                <span class="card-title">📥 Importer une sauvegarde JSON</span>
+                <button class="fav-del-x" style="position:static; display:flex;" onclick="closeJsonImportModal()">✕</button>
+            </div>
+            <textarea id="json-import-textarea" class="clean-input" rows="6" placeholder="Colle ici le contenu de ton backup.json..." style="resize:vertical; font-size:0.75rem;"></textarea>
+            <div class="modal-btn-row">
+                <button class="secondary-btn" style="flex:1;" onclick="closeJsonImportModal()">Annuler</button>
+                <button class="primary-btn" style="flex:2;" onclick="confirmJsonImportModal()">Restaurer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE RÉGLAGES GLOBAUX & PROFIL V6.3 -->
+    <div id="global-settings-modal" class="modal-overlay" onclick="closeGlobalSettingsModal()">
+        <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:85vh; overflow-y:auto;">
+            <div class="dash-card-header" style="margin-bottom:12px;">
+                <span class="card-title">⚙️ Profil & Affichage</span>
+                <button class="fav-del-x" style="position:static; display:flex;" onclick="closeGlobalSettingsModal()">✕</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                    <label class="field-label">Prénom (Accueil & Carte FUT)</label>
+                    <input type="text" id="cfg-user-name" class="clean-input" placeholder="Ex: Gaël">
+                </div>
+                <div>
+                    <label class="field-label">Titre d'en-tête (Accueil)</label>
+                    <input type="text" id="cfg-home-title" class="clean-input">
+                </div>
+                <div>
+                    <label class="field-label">Description / Objectif</label>
+                    <input type="text" id="cfg-home-sub" class="clean-input">
+                </div>
+                <div style="margin-top:4px;">
+                    <label class="field-label">Ordre des cartes sur l'Accueil</label>
+                    <div id="home-order-list" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;"></div>
+                </div>
+                <button class="primary-btn" style="padding:11px; margin-top:4px;" onclick="saveHomeCustomization()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRE FLOTTANTE CHRONO DE REPOS (V6.2) -->
+    <div id="floating-rest-bar" class="floating-rest-bar" aria-live="polite">
+        <button class="floating-rest-adj" onclick="adjustTimer(-30)">−30s</button>
+        <div class="floating-rest-center">
+            <svg class="floating-rest-ring" viewBox="0 0 36 36" width="22" height="22">
+                <circle class="timer-ring-bg" cx="18" cy="18" r="15.9" fill="none" stroke-width="3.5"/>
+                <circle class="timer-ring-fg" id="floating-timer-ring-fg" cx="18" cy="18" r="15.9" fill="none" stroke-width="3.5" stroke-dasharray="100 100" stroke-dashoffset="100" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+            </svg>
+            <span id="floating-timer-display">00:00</span>
+        </div>
+        <button class="floating-rest-adj" onclick="adjustTimer(30)">+30s</button>
+        <button class="floating-rest-stop" onclick="resetTimer()" title="Arrêter le chrono" aria-label="Arrêter">✕</button>
     </div>
 
     <!-- BOTTOM TAB BAR VECTORIELLE & LUMINEUSE -->

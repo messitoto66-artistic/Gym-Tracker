@@ -1,5 +1,5 @@
-// sw.js — Service Worker pour exécution 100% Hors-Ligne sur iPhone (V5.6)
-const CACHE_NAME = 'Gym-Tracker-v5.6';
+// sw.js — Service Worker pour exécution 100% Hors-Ligne sur iPhone (V6.3)
+const CACHE_NAME = 'Gym-Tracker-v6.3';
 const ASSETS = [
     './',
     './index.html',
@@ -31,14 +31,17 @@ self.addEventListener('activate', event => {
 // Stratégie "Network First, fallback to Cache" :
 // Si tu as de la 4G, il prend la dernière version sur GitHub. Si tu es en sous-sol sans réseau, il ouvre le cache instantanément !
 self.addEventListener('fetch', event => {
-    if (event.request.url.includes('api.github.com')) return; // Ne jamais cacher les appels API de sauvegarde
+    const url = event.request.url || '';
+    if (url.includes('api.github.com') || url.includes('world.openfoodfacts.org')) return;
     event.respondWith(
         fetch(event.request)
             .then(response => {
-                const clone = response.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                if (response && response.ok) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
                 return response;
             })
-            .catch(() => caches.match(event.request))
+            .catch(() => caches.match(event.request).then(cached => cached || Response.error()))
     );
 });
