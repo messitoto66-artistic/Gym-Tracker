@@ -1,6 +1,6 @@
 {
   "version": "5.0",
-  "updatedAt": "27/11/2026 16:01:29",
+  "updatedAt": "28/11/2026 15:33:00",
   "homeConfig": {
     "userName": "Galouuu",
     "title": "MOOONSTRE",
@@ -151,7 +151,9 @@
             "Tractions pronation lestées",
             "Tirage vertical poitrine prise large"
           ],
-          "activeVariantIndex": 1
+          "activeVariantIndex": 0,
+          "step": 1,
+          "exoType": "weight"
         },
         {
           "id": "pull_2",
@@ -188,7 +190,7 @@
           "id": "pull_4",
           "title": "Arr. Épaule",
           "sets": 3,
-          "repsMin": 15,
+          "repsMin": 10,
           "repsMax": 15,
           "rir": "0-1",
           "rest": 90,
@@ -197,7 +199,9 @@
             "Face-pull poulie",
             "Oiseau machine / Haltères"
           ],
-          "activeVariantIndex": 0
+          "activeVariantIndex": 0,
+          "step": 1,
+          "exoType": "weight"
         },
         {
           "id": "pull_5",
@@ -552,7 +556,8 @@
     "2026-11-20": "pull",
     "2026-11-23": "legs",
     "2026-11-24": "upper",
-    "2026-11-27": "push"
+    "2026-11-27": "push",
+    "2026-11-28": "pull"
   },
   "machineLibrary": {
     "developpe_incline_30_halteres": {
@@ -1298,6 +1303,27 @@
         ],
         "best1RM": 26.7,
         "tonnage": 600
+      },
+      {
+        "dateKey": "2026-11-28",
+        "displayDate": "28/11",
+        "machineName": "Barbell Curl barre EZ",
+        "sets": [
+          {
+            "weight": "20",
+            "reps": "12"
+          },
+          {
+            "weight": "20",
+            "reps": "12"
+          },
+          {
+            "weight": "20",
+            "reps": "9"
+          }
+        ],
+        "best1RM": 28,
+        "tonnage": 660
       }
     ],
     "oiseau_machine_halteres": [
@@ -2581,6 +2607,27 @@
         ],
         "best1RM": 18.7,
         "tonnage": 420
+      },
+      {
+        "dateKey": "2026-11-28",
+        "displayDate": "28/11",
+        "machineName": "Banc à lombaires lesté",
+        "sets": [
+          {
+            "weight": "14",
+            "reps": "12"
+          },
+          {
+            "weight": "14",
+            "reps": "12"
+          },
+          {
+            "weight": "14",
+            "reps": "12"
+          }
+        ],
+        "best1RM": 19.6,
+        "tonnage": 504
       }
     ],
     "rowing_haltere_bucheron": [
@@ -2680,6 +2727,27 @@
         ],
         "best1RM": 27.9,
         "tonnage": 704
+      },
+      {
+        "dateKey": "2026-11-28",
+        "displayDate": "28/11",
+        "machineName": "Rowing haltère bûcheron",
+        "sets": [
+          {
+            "weight": "22",
+            "reps": "10"
+          },
+          {
+            "weight": "22",
+            "reps": "10"
+          },
+          {
+            "weight": "22",
+            "reps": "10"
+          }
+        ],
+        "best1RM": 29.3,
+        "tonnage": 660
       }
     ],
     "leg_curl_assis_ou_allonge": [
@@ -3113,6 +3181,27 @@
         ],
         "best1RM": 73.3,
         "tonnage": 1650
+      },
+      {
+        "dateKey": "2026-11-28",
+        "displayDate": "28/11",
+        "machineName": "Tirage horizontal poulie prise large",
+        "sets": [
+          {
+            "weight": "55",
+            "reps": "10"
+          },
+          {
+            "weight": "55",
+            "reps": "10"
+          },
+          {
+            "weight": "55",
+            "reps": "8"
+          }
+        ],
+        "best1RM": 73.3,
+        "tonnage": 1540
       }
     ],
     "tirage_vertical_poitrine_prise_large": [
@@ -3363,6 +3452,27 @@
         "oneRM": 12.7,
         "best1RM": 12.7,
         "tonnage": 320
+      },
+      {
+        "dateKey": "2026-11-28",
+        "displayDate": "28/11",
+        "machineName": "Tractions pronation lestées",
+        "sets": [
+          {
+            "weight": "10",
+            "reps": "10"
+          },
+          {
+            "weight": "10",
+            "reps": "9"
+          },
+          {
+            "weight": "10",
+            "reps": "7"
+          }
+        ],
+        "best1RM": 13.3,
+        "tonnage": 260
       }
     ],
     "hack_squat_pendulum_squat": [
@@ -4515,6 +4625,27 @@
         ],
         "best1RM": 33,
         "tonnage": 990
+      },
+      {
+        "dateKey": "2026-11-28",
+        "displayDate": "28/11",
+        "machineName": "Face-pull poulie",
+        "sets": [
+          {
+            "weight": "23",
+            "reps": "10"
+          },
+          {
+            "weight": "20",
+            "reps": "15"
+          },
+          {
+            "weight": "22",
+            "reps": "15"
+          }
+        ],
+        "best1RM": 33,
+        "tonnage": 860
       }
     ],
     "superset_bras_ez_dips": [
@@ -5096,6 +5227,14 @@
       "meals": []
     },
     "2026-11-27": {
+      "water": 3,
+      "kcal": 0,
+      "prot": 0,
+      "carbs": 0,
+      "fats": 0,
+      "meals": []
+    },
+    "2026-11-28": {
       "water": 0,
       "kcal": 0,
       "prot": 0,
@@ -5147,7 +5286,7 @@
   ],
   "meta": {
     "weight": 71,
-    "sessions": 29,
-    "lastMachine": "Triceps poulie basse"
+    "sessions": 30,
+    "lastMachine": "Banc à lombaires lesté"
   }
 }
